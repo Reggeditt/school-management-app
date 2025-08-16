@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useAuth, UserRole } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth, UserRole } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,10 +11,10 @@ interface ProtectedRouteProps {
   fallbackPath?: string;
 }
 
-export function ProtectedRoute({ 
-  children, 
-  requiredRole, 
-  fallbackPath = '/login' 
+export function ProtectedRoute({
+  children,
+  requiredRole,
+  fallbackPath = "/login",
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -29,13 +29,21 @@ export function ProtectedRoute({
 
       // Check role-based access
       if (requiredRole) {
-        const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+        const allowedRoles = Array.isArray(requiredRole)
+          ? requiredRole
+          : [requiredRole];
         if (!allowedRoles.includes(user.role)) {
           // Redirect to appropriate dashboard based on user role
-          const dashboardPath = user.role === 'admin' ? '/admin/dashboard' :
-                               user.role === 'teacher' ? '/teacher/dashboard' :
-                               user.role === 'student' ? '/student/dashboard' :
-                               user.role === 'parent' ? '/parent/dashboard' : '/';
+          const dashboardPath =
+            user.role === "admin"
+              ? "/admin/dashboard"
+              : user.role === "teacher"
+              ? "/teacher/dashboard"
+              : user.role === "student"
+              ? "/student/dashboard"
+              : user.role === "parent"
+              ? "/parent/dashboard"
+              : "/";
           router.push(dashboardPath);
           return;
         }
@@ -74,7 +82,9 @@ export function ProtectedRoute({
   }
 
   if (requiredRole) {
-    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    const allowedRoles = Array.isArray(requiredRole)
+      ? requiredRole
+      : [requiredRole];
     if (!allowedRoles.includes(user.role)) {
       return null;
     }

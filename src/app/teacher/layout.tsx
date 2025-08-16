@@ -91,12 +91,12 @@ const navigation = [
 ];
 
 export default function TeacherLayout({ children }: TeacherLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const pathname = usePathname();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
     } catch (error) {
       console.error("Logout error:", error);
     }

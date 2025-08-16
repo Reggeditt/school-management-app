@@ -15,6 +15,7 @@ export type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'staff';
 
 export interface AppUser extends User {
   role: UserRole;
+  email: string;
   profile?: {
     name: string;
     schoolId?: string;

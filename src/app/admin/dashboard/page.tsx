@@ -1,47 +1,14 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/auth-context';
 import { useStore } from '@/contexts/store-context';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
   const { state, loadDashboardData } = useStore();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
-
-  const handleDeleteSeedData = async () => {
-    if (!confirm('Are you sure you want to delete all seed data? This action cannot be undone!')) {
-      return;
-    }
-
-    setIsDeleting(true);
-    setDeleteMessage(null);
-
-    try {
-      const response = await fetch('/api/delete-seed-data', {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setDeleteMessage(`✅ ${data.message}`);
-        // Reload dashboard data to reflect changes
-        loadDashboardData();
-      } else {
-        setDeleteMessage(`❌ Error: ${data.details || data.error}`);
-      }
-    } catch (error) {
-      console.error('Error deleting seed data:', error);
-      setDeleteMessage('❌ Failed to delete seed data. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   useEffect(() => {
     if (user?.profile?.schoolId) {
@@ -70,31 +37,10 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <Button 
-            onClick={handleDeleteSeedData}
-            disabled={isDeleting}
-            variant="destructive"
-            size="sm"
-          >
-            {isDeleting ? 'Deleting...' : 'Delete Seed Data'}
-          </Button>
-          <div className="text-sm text-muted-foreground">
-            Welcome back, Admin!
-          </div>
+        <div className="text-sm text-muted-foreground">
+          Welcome back, Admin!
         </div>
       </div>
-
-      {/* Delete Message */}
-      {deleteMessage && (
-        <div className={`p-4 rounded-lg ${
-          deleteMessage.startsWith('✅') 
-            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
-            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
-        }`}>
-          {deleteMessage}
-        </div>
-      )}
       
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -224,7 +170,7 @@ export default function AdminDashboardPage() {
             ))}
             {state.students.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No students found. Try seeding demo data.
+                No students found. Add students using the Students page.
               </p>
             )}
           </CardContent>
@@ -257,7 +203,7 @@ export default function AdminDashboardPage() {
             ))}
             {state.teachers.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No teachers found. Try seeding demo data.
+                No teachers found. Add teachers using the Teachers page.
               </p>
             )}
           </CardContent>
@@ -302,7 +248,7 @@ export default function AdminDashboardPage() {
             ))}
             {state.classes.length === 0 && (
               <div className="col-span-3 text-center py-8">
-                <p className="text-muted-foreground">No classes found. Try seeding demo data.</p>
+                <p className="text-muted-foreground">No classes found. Add classes using the Classes page.</p>
               </div>
             )}
           </div>

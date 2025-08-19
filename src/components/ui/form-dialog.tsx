@@ -114,9 +114,7 @@ export function FormDialog({
         });
         onClose();
       }
-    } catch (error) {
-      console.error('Form submission error:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
         variant: "destructive",

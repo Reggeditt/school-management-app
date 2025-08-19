@@ -172,9 +172,7 @@ export function EditUserDialog({ user, onClose, onUserUpdated }: EditUserDialogP
         throw new Error(data.message || 'Failed to update user');
       }
 
-    } catch (error) {
-      console.error('Error updating user:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update user. Please try again.",
         variant: "destructive",

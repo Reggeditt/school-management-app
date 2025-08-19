@@ -178,9 +178,7 @@ export default function StudentsPage() {
         title: "Success",
         description: "Student deleted successfully",
       });
-    } catch (error) {
-      console.error('Error deleting student:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete student. Please try again.",
         variant: "destructive",
@@ -212,9 +210,7 @@ export default function StudentsPage() {
         title: "Success",
         description: `${selectedStudents.length} students deleted successfully`,
       });
-    } catch (error) {
-      console.error('Error deleting students:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete some students. Please try again.",
         variant: "destructive",

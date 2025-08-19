@@ -281,7 +281,7 @@ export class DatabaseService {
       const docSnap = await getDoc(docRef);
       return processDocumentFromFirestore(docSnap) as School | null;
     } catch (error) {
-      console.error('Error getting school:', error);
+
       throw error;
     }
   }
@@ -297,7 +297,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'schools'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating school:', error);
+
       throw error;
     }
   }
@@ -315,7 +315,7 @@ export class DatabaseService {
       const updatedDoc = await getDoc(docRef);
       return processDocumentFromFirestore(updatedDoc) as School;
     } catch (error) {
-      console.error('Error updating school:', error);
+
       throw error;
     }
   }
@@ -346,7 +346,7 @@ export class DatabaseService {
         .map(doc => processDocumentFromFirestore(doc))
         .filter(doc => doc !== null) as unknown as Student[];
     } catch (error) {
-      console.error('Error getting students:', error);
+
       throw error;
     }
   }
@@ -357,7 +357,7 @@ export class DatabaseService {
       const docSnap = await getDoc(docRef);
       return processDocumentFromFirestore(docSnap) as unknown as Student | null;
     } catch (error: unknown) {
-      console.error('Error getting student:', error);
+
       throw error;
     }
   }
@@ -373,7 +373,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'students'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating student:', error);
+
       throw error;
     }
   }
@@ -388,7 +388,7 @@ export class DatabaseService {
       const docRef = doc(db, 'students', id);
       await updateDoc(docRef, data);
     } catch (error) {
-      console.error('Error updating student:', error);
+
       throw error;
     }
   }
@@ -398,7 +398,7 @@ export class DatabaseService {
       const docRef = doc(db, 'students', id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting student:', error);
+
       throw error;
     }
   }
@@ -423,7 +423,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc)) as unknown as Teacher[];
     } catch (error: unknown) {
-      console.error('Error getting teachers:', error);
+
       throw error;
     }
   }
@@ -434,7 +434,7 @@ export class DatabaseService {
       const docSnap = await getDoc(docRef);
       return processDocumentFromFirestore(docSnap) as Teacher | null;
     } catch (error) {
-      console.error('Error getting teacher:', error);
+
       throw error;
     }
   }
@@ -450,7 +450,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'teachers'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating teacher:', error);
+
       throw error;
     }
   }
@@ -465,7 +465,7 @@ export class DatabaseService {
       const docRef = doc(db, 'teachers', id);
       await updateDoc(docRef, data);
     } catch (error) {
-      console.error('Error updating teacher:', error);
+
       throw error;
     }
   }
@@ -475,7 +475,7 @@ export class DatabaseService {
       const docRef = doc(db, 'teachers', id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting teacher:', error);
+
       throw error;
     }
   }
@@ -501,7 +501,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as Class);
     } catch (error) {
-      console.error('Error getting classes:', error);
+
       throw error;
     }
   }
@@ -512,7 +512,7 @@ export class DatabaseService {
       const docSnap = await getDoc(docRef);
       return processDocumentFromFirestore(docSnap) as Class | null;
     } catch (error) {
-      console.error('Error getting class:', error);
+
       throw error;
     }
   }
@@ -528,7 +528,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'classes'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating class:', error);
+
       throw error;
     }
   }
@@ -543,7 +543,7 @@ export class DatabaseService {
       const docRef = doc(db, 'classes', id);
       await updateDoc(docRef, data);
     } catch (error) {
-      console.error('Error updating class:', error);
+
       throw error;
     }
   }
@@ -553,7 +553,7 @@ export class DatabaseService {
       const docRef = doc(db, 'classes', id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting class:', error);
+
       throw error;
     }
   }
@@ -575,7 +575,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as Subject);
     } catch (error) {
-      console.error('Error getting subjects:', error);
+
       throw error;
     }
   }
@@ -586,7 +586,7 @@ export class DatabaseService {
       const docSnap = await getDoc(docRef);
       return processDocumentFromFirestore(docSnap) as Subject | null;
     } catch (error) {
-      console.error('Error getting subject:', error);
+
       throw error;
     }
   }
@@ -602,7 +602,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'subjects'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating subject:', error);
+
       throw error;
     }
   }
@@ -617,7 +617,7 @@ export class DatabaseService {
       const docRef = doc(db, 'subjects', id);
       await updateDoc(docRef, data);
     } catch (error) {
-      console.error('Error updating subject:', error);
+
       throw error;
     }
   }
@@ -627,7 +627,7 @@ export class DatabaseService {
       const docRef = doc(db, 'subjects', id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting subject:', error);
+
       throw error;
     }
   }
@@ -669,7 +669,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as Attendance);
     } catch (error) {
-      console.error('Error getting attendance:', error);
+
       throw error;
     }
   }
@@ -685,7 +685,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'attendance'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error marking attendance:', error);
+
       throw error;
     }
   }
@@ -702,7 +702,7 @@ export class DatabaseService {
       const newDoc = await getDoc(docRef);
       return processDocumentFromFirestore(newDoc) as Attendance;
     } catch (error) {
-      console.error('Error creating attendance:', error);
+
       throw error;
     }
   }
@@ -720,7 +720,7 @@ export class DatabaseService {
       const updatedDoc = await getDoc(docRef);
       return processDocumentFromFirestore(updatedDoc) as Attendance;
     } catch (error) {
-      console.error('Error updating attendance:', error);
+
       throw error;
     }
   }
@@ -730,7 +730,7 @@ export class DatabaseService {
       const docRef = doc(db, 'attendance', id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting attendance:', error);
+
       throw error;
     }
   }
@@ -752,7 +752,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as Exam);
     } catch (error) {
-      console.error('Error getting exams:', error);
+
       throw error;
     }
   }
@@ -768,7 +768,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'exams'), data);
       return docRef.id;
     } catch (error) {
-      console.error('Error creating exam:', error);
+
       throw error;
     }
   }
@@ -786,7 +786,7 @@ export class DatabaseService {
       const updatedDoc = await getDoc(docRef);
       return processDocumentFromFirestore(updatedDoc) as Exam;
     } catch (error) {
-      console.error('Error updating exam:', error);
+
       throw error;
     }
   }
@@ -796,7 +796,7 @@ export class DatabaseService {
       const docRef = doc(db, 'exams', id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting exam:', error);
+
       throw error;
     }
   }
@@ -818,7 +818,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as Fee);
     } catch (error) {
-      console.error('Error getting fees:', error);
+
       throw error;
     }
   }
@@ -831,7 +831,7 @@ export class DatabaseService {
       const docSnap = await getDoc(docRef);
       return processDocumentFromFirestore(docSnap) as User | null;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+
       throw error;
     }
   }
@@ -847,7 +847,7 @@ export class DatabaseService {
       const docRef = await addDoc(collection(db, 'users'), data);
       return docRef.id;
     } catch (error: unknown) {
-      console.error('Error creating user profile:', error);
+
       throw error;
     }
   }
@@ -863,7 +863,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as User);
     } catch (error) {
-      console.error('Error getting users:', error);
+
       throw error;
     }
   }
@@ -878,7 +878,7 @@ export class DatabaseService {
       
       await updateDoc(userRef, data);
     } catch (error) {
-      console.error('Error updating user:', error);
+
       throw error;
     }
   }
@@ -888,7 +888,7 @@ export class DatabaseService {
       const userRef = doc(db, 'users', userId);
       await deleteDoc(userRef);
     } catch (error) {
-      console.error('Error deleting user:', error);
+
       throw error;
     }
   }
@@ -904,7 +904,7 @@ export class DatabaseService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as User);
     } catch (error) {
-      console.error('Error getting users by role:', error);
+
       throw error;
     }
   }
@@ -922,7 +922,7 @@ export class DatabaseService {
         });
       }
     } catch (error) {
-      console.error('Error toggling user status:', error);
+
       throw error;
     }
   }
@@ -949,7 +949,7 @@ export class DatabaseService {
       await batch.commit();
       return ids;
     } catch (error) {
-      console.error('Error batch creating students:', error);
+
       throw error;
     }
   }
@@ -974,7 +974,7 @@ export class DatabaseService {
       await batch.commit();
       return ids;
     } catch (error) {
-      console.error('Error batch marking attendance:', error);
+
       throw error;
     }
   }
@@ -1073,7 +1073,7 @@ export class DatabaseService {
         pendingFees: pendingFees.size,
       };
     } catch (error) {
-      console.error('Error getting school statistics:', error);
+
       throw error;
     }
   }

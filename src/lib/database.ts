@@ -73,9 +73,7 @@ export class DatabaseService {
         updatedAt: Timestamp.fromDate(now)
       });
       return docRef.id;
-    } catch (error) {
-      console.error(`Error creating ${collectionName}:`, error);
-      throw error;
+    } catch (error) {throw error;
     }
   }
 
@@ -94,9 +92,7 @@ export class DatabaseService {
         } as T;
       }
       return null;
-    } catch (error) {
-      console.error(`Error getting ${collectionName} by ID:`, error);
-      throw error;
+    } catch (error) {throw error;
     }
   }
 
@@ -133,9 +129,7 @@ export class DatabaseService {
         createdAt: doc.data().createdAt?.toDate(),
         updatedAt: doc.data().updatedAt?.toDate()
       })) as T[];
-    } catch (error) {
-      console.error(`Error getting all ${collectionName}:`, error);
-      throw error;
+    } catch (error) {throw error;
     }
   }
 
@@ -146,9 +140,7 @@ export class DatabaseService {
         ...data,
         updatedAt: Timestamp.fromDate(new Date())
       });
-    } catch (error) {
-      console.error(`Error updating ${collectionName}:`, error);
-      throw error;
+    } catch (error) {throw error;
     }
   }
 
@@ -156,9 +148,7 @@ export class DatabaseService {
     try {
       const docRef = doc(db, collectionName, id);
       await deleteDoc(docRef);
-    } catch (error) {
-      console.error(`Error deleting ${collectionName}:`, error);
-      throw error;
+    } catch (error) {throw error;
     }
   }
 
@@ -216,10 +206,7 @@ export class DatabaseService {
 export async function seedDemoData(schoolId: string) {
   if (process.env.NODE_ENV !== 'development') return;
 
-  try {
-    console.log('Seeding demo data...');
-
-    // Create demo students
+  try {// Create demo students
     const demoStudents: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>[] = [
       {
         studentId: 'STU001',
@@ -277,10 +264,5 @@ export async function seedDemoData(schoolId: string) {
 
     for (const teacher of demoTeachers) {
       await DatabaseService.create<Teacher>('teachers', teacher);
-    }
-
-    console.log('Demo data seeded successfully!');
-  } catch (error) {
-    console.error('Error seeding demo data:', error);
-  }
+    }} catch (error) {}
 }

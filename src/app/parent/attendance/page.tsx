@@ -173,7 +173,6 @@ export default function AttendancePage() {
       setChildren(mockChildren);
       setMonthlyAttendance(mockMonthlyAttendance);
     } catch (error) {
-      console.error("Error loading attendance data:", error);
       toast({
         title: "Error",
         description: "Failed to load attendance data",

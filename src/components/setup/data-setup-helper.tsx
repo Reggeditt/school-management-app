@@ -16,10 +16,7 @@ export function DataSetupHelper() {
 
   const setupDemoDataRelationships = async () => {
     setIsSettingUp(true);
-    try {
-      console.log('Setting up data relationships...');
-
-      // Setup subject-class relationships
+    try {// Setup subject-class relationships
       const subjectClassMappings = [
         { subjectName: 'Mathematics', classGrades: ['10', '9'] },
         { subjectName: 'English Language', classGrades: ['10', '9'] },
@@ -45,9 +42,7 @@ export function DataSetupHelper() {
             .map(c => c.id);
           
           if (classIds.length > 0) {
-            await updateSubject(subject.id, { classIds });
-            console.log(`Updated ${subject.name} with classes:`, classIds);
-          }
+            await updateSubject(subject.id, { classIds });}
         }
       }
 
@@ -62,9 +57,7 @@ export function DataSetupHelper() {
             .map(s => s.id);
           
           if (subjectIds.length > 0) {
-            await updateTeacher(teacher.id, { subjects: subjectIds });
-            console.log(`Updated ${teacher.firstName} ${teacher.lastName} with subjects:`, subjectIds);
-          }
+            await updateTeacher(teacher.id, { subjects: subjectIds });}
         }
       }
 
@@ -81,9 +74,7 @@ export function DataSetupHelper() {
               if (!currentTeacherIds.includes(teacher.id)) {
                 await updateSubject(subject.id, { 
                   teacherIds: [...currentTeacherIds, teacher.id] 
-                });
-                console.log(`Added teacher ${teacher.firstName} to subject ${subject.name}`);
-              }
+                });}
             }
           }
         }
@@ -94,9 +85,7 @@ export function DataSetupHelper() {
         description: "Data relationships have been set up successfully!",
       });
 
-    } catch (error) {
-      console.error('Error setting up data relationships:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to set up data relationships",
         variant: "destructive"

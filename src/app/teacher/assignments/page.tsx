@@ -100,7 +100,6 @@ export default function TeacherAssignments() {
 
       setAssignments(mockAssignments);
     } catch (error) {
-      console.error("Error loading assignments:", error);
       toast({
         title: "Error",
         description: "Failed to load assignments",

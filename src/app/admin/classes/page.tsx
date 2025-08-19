@@ -207,9 +207,7 @@ export default function ClassesPage() {
         });
       }
       return true;
-    } catch (error) {
-      console.error('Error saving class:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to save class. Please try again.",
         variant: "destructive",
@@ -230,9 +228,7 @@ export default function ClassesPage() {
         title: "Success",
         description: "Class deleted successfully",
       });
-    } catch (error) {
-      console.error('Error deleting class:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete class. Please try again.",
         variant: "destructive",

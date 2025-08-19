@@ -503,7 +503,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       
       dispatch({ type: 'SET_STUDENTS', payload: students });
     } catch (error: any) {
-      console.error('Error loading students:', error);
       dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'students', value: false } });
@@ -520,7 +519,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'ADD_STUDENT', payload: newStudent });
       }
     } catch (error: any) {
-      console.error('Error adding student:', error);
       dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: error.message } });
       throw error;
     }
@@ -530,9 +528,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.updateStudent(id, data);
       dispatch({ type: 'UPDATE_STUDENT', payload: { id, data } });
-    } catch (error: any) {
-      console.error('Error updating student:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: error.message } });
       throw error;
     }
   };
@@ -541,9 +537,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.deleteStudent(id);
       dispatch({ type: 'DELETE_STUDENT', payload: id });
-    } catch (error: any) {
-      console.error('Error deleting student:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: error.message } });
       throw error;
     }
   };
@@ -557,9 +551,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const teachers = await DatabaseService.getTeachers(schoolId, state.filters);
       
       dispatch({ type: 'SET_TEACHERS', payload: teachers });
-    } catch (error: any) {
-      console.error('Error loading teachers:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'teachers', value: false } });
     }
@@ -574,9 +566,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (newTeacher) {
         dispatch({ type: 'ADD_TEACHER', payload: newTeacher });
       }
-    } catch (error: any) {
-      console.error('Error adding teacher:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
       throw error;
     }
   };
@@ -585,9 +575,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.updateTeacher(id, data);
       dispatch({ type: 'UPDATE_TEACHER', payload: { id, data } });
-    } catch (error: any) {
-      console.error('Error updating teacher:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
       throw error;
     }
   };
@@ -596,9 +584,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.deleteTeacher(id);
       dispatch({ type: 'DELETE_TEACHER', payload: id });
-    } catch (error: any) {
-      console.error('Error deleting teacher:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: error.message } });
       throw error;
     }
   };
@@ -612,9 +598,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const classes = await DatabaseService.getClasses(schoolId, state.filters);
       
       dispatch({ type: 'SET_CLASSES', payload: classes });
-    } catch (error: any) {
-      console.error('Error loading classes:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'classes', value: false } });
     }
@@ -629,9 +613,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (newClass) {
         dispatch({ type: 'ADD_CLASS', payload: newClass });
       }
-    } catch (error: any) {
-      console.error('Error adding class:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
       throw error;
     }
   };
@@ -640,9 +622,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.updateClass(id, data);
       dispatch({ type: 'UPDATE_CLASS', payload: { id, data } });
-    } catch (error: any) {
-      console.error('Error updating class:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
       throw error;
     }
   };
@@ -651,9 +631,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.deleteClass(id);
       dispatch({ type: 'DELETE_CLASS', payload: id });
-    } catch (error: any) {
-      console.error('Error deleting class:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: error.message } });
       throw error;
     }
   };
@@ -665,9 +643,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const id = await DatabaseService.createSubject({ ...subjectData, schoolId });
       const newSubject = { ...subjectData, id, schoolId, createdAt: new Date(), updatedAt: new Date() };
       dispatch({ type: 'ADD_SUBJECT', payload: newSubject });
-    } catch (error: any) {
-      console.error('Error adding subject:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
       throw error;
     }
   };
@@ -676,9 +652,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.updateSubject(id, data);
       dispatch({ type: 'UPDATE_SUBJECT', payload: { id, data } });
-    } catch (error: any) {
-      console.error('Error updating subject:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
       throw error;
     }
   };
@@ -687,9 +661,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.deleteSubject(id);
       dispatch({ type: 'DELETE_SUBJECT', payload: id });
-    } catch (error: any) {
-      console.error('Error deleting subject:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
       throw error;
     }
   };
@@ -700,9 +672,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const schoolId = getSchoolId();
       const subjects = await DatabaseService.getSubjects(schoolId);
       dispatch({ type: 'SET_SUBJECTS', payload: subjects });
-    } catch (error: any) {
-      console.error('Error loading subjects:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'subjects', value: false } });
     }
@@ -714,9 +684,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const schoolId = getSchoolId();
       const attendance = await DatabaseService.getAttendance(schoolId, date);
       dispatch({ type: 'SET_ATTENDANCE', payload: attendance });
-    } catch (error: any) {
-      console.error('Error loading attendance:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'attendance', value: false } });
     }
@@ -726,9 +694,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const newAttendance = await DatabaseService.createAttendance(attendanceData);
       dispatch({ type: 'ADD_ATTENDANCE', payload: newAttendance });
-    } catch (error: any) {
-      console.error('Error adding attendance:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
       throw error;
     }
   };
@@ -737,9 +703,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const updatedAttendance = await DatabaseService.updateAttendance(id, data);
       dispatch({ type: 'UPDATE_ATTENDANCE', payload: { id, data: updatedAttendance } });
-    } catch (error: any) {
-      console.error('Error updating attendance:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
       throw error;
     }
   };
@@ -748,9 +712,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.deleteAttendance(id);
       dispatch({ type: 'DELETE_ATTENDANCE', payload: id });
-    } catch (error: any) {
-      console.error('Error deleting attendance:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
       throw error;
     }
   };
@@ -761,9 +723,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const schoolId = getSchoolId();
       const exams = await DatabaseService.getExams(schoolId);
       dispatch({ type: 'SET_EXAMS', payload: exams });
-    } catch (error: any) {
-      console.error('Error loading exams:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'exams', value: false } });
     }
@@ -779,9 +739,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updatedAt: new Date() 
       } as Exam;
       dispatch({ type: 'ADD_EXAM', payload: newExam });
-    } catch (error: any) {
-      console.error('Error adding exam:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
       throw error;
     }
   };
@@ -790,9 +748,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const updatedExam = await DatabaseService.updateExam(id, data);
       dispatch({ type: 'UPDATE_EXAM', payload: { id, data: updatedExam } });
-    } catch (error: any) {
-      console.error('Error updating exam:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
       throw error;
     }
   };
@@ -801,9 +757,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       await DatabaseService.deleteExam(id);
       dispatch({ type: 'DELETE_EXAM', payload: id });
-    } catch (error: any) {
-      console.error('Error deleting exam:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
       throw error;
     }
   };
@@ -825,9 +779,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const todayAttendance = await DatabaseService.getAttendance(schoolId, new Date());
       // Note: We'll calculate attendance rate in a separate effect when students data changes
       
-    } catch (error: any) {
-      console.error('Error loading dashboard data:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'dashboard', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'dashboard', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'dashboard', value: false } });
     }
@@ -850,9 +802,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (school) {
         dispatch({ type: 'SET_SCHOOL', payload: school });
       }
-    } catch (error: any) {
-      console.error('Error loading school:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'school', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'school', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'school', value: false } });
     }
@@ -873,9 +823,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (updatedSchool) {
         dispatch({ type: 'SET_SCHOOL', payload: updatedSchool });
       }
-    } catch (error: any) {
-      console.error('Error updating school:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'school', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'school', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'school', value: false } });
     }
@@ -892,9 +840,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // Update user preferences in database (this would be implemented in DatabaseService)
       // For now, just update local state
       dispatch({ type: 'SET_USER_PREFERENCES', payload: preferences });
-    } catch (error: any) {
-      console.error('Error updating user preferences:', error);
-      dispatch({ type: 'SET_ERROR', payload: { key: 'preferences', error: error.message } });
+    } catch (error: any) {dispatch({ type: 'SET_ERROR', payload: { key: 'preferences', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'preferences', value: false } });
     }
@@ -923,9 +869,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const attendanceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0;
           
           dispatch({ type: 'SET_STATS', payload: { attendanceRate } });
-        } catch (error: any) {
-          console.error('Error calculating attendance rate:', error);
-        }
+        } catch (error: any) {}
       }
     };
 

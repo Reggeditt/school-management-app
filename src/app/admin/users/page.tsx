@@ -74,9 +74,7 @@ export default function UsersPage() {
       } else {
         throw new Error(data.message || 'Failed to load users');
       }
-    } catch (error) {
-      console.error('Error loading users:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to load users. Please try again.",
         variant: "destructive",
@@ -145,9 +143,7 @@ export default function UsersPage() {
       } else {
         throw new Error(data.message || 'Failed to update user status');
       }
-    } catch (error: any) {
-      console.error('Error toggling user status:', error);
-      toast({
+    } catch (error: any) {toast({
         title: "Error",
         description: error.message || "Failed to update user status. Please try again.",
         variant: "destructive",
@@ -188,9 +184,7 @@ export default function UsersPage() {
       } else {
         throw new Error(data.message || 'Failed to delete user');
       }
-    } catch (error: any) {
-      console.error('Error deleting user:', error);
-      toast({
+    } catch (error: any) {toast({
         title: "Error",
         description: error.message || "Failed to delete user. Please try again.",
         variant: "destructive",

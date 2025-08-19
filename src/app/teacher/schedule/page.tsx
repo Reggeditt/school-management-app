@@ -150,7 +150,6 @@ export default function TeacherSchedule() {
 
       setSchedule(mockSchedule);
     } catch (error) {
-      console.error("Error loading schedule:", error);
       toast({
         title: "Error",
         description: "Failed to load schedule",

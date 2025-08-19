@@ -334,12 +334,6 @@ export function ClassDetailView({
                     searchPlaceholder="Search students..."
                     searchKeys={['firstName', 'lastName', 'studentId']}
                     emptyStateMessage="No students assigned to this class"
-                    actions={{
-                      create: {
-                        label: "Add Student",
-                        onClick: () => console.log('Add student to class')
-                      }
-                    }}
                   />
                 </CardContent>
               </Card>
@@ -534,7 +528,6 @@ export function ClassDetailView({
                       description: `Subject ${isAssigned ? 'assigned to' : 'removed from'} class`,
                     });
                   } catch (error) {
-                    console.error('Error updating subject assignment:', error);
                     toast({
                       title: "Error",
                       description: "Failed to update subject assignment",

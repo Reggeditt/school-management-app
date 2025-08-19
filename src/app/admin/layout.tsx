@@ -23,9 +23,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+    } catch (error) {}
   };
 
   return (

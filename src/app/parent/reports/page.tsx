@@ -303,9 +303,7 @@ export default function ReportsPage() {
       setAttendanceReports(mockAttendanceReports);
       setBehaviorReports(mockBehaviorReports);
       setProgressReports(mockProgressReports);
-    } catch (error) {
-      console.error("Error loading reports data:", error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to load reports data",
         variant: "destructive",

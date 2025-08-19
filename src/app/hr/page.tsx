@@ -271,9 +271,7 @@ export default function HRDashboard() {
       setRecentActivities(mockRecentActivities);
       setLeaveRequests(mockLeaveRequests);
       setDepartmentStats(mockDepartmentStats);
-    } catch (error) {
-      console.error("Error loading HR data:", error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to load HR dashboard data",
         variant: "destructive",

@@ -183,9 +183,7 @@ export default function TeachersPage() {
         });
       }
       return true;
-    } catch (error) {
-      console.error('Error saving teacher:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to save teacher. Please try again.",
         variant: "destructive",
@@ -206,9 +204,7 @@ export default function TeachersPage() {
         title: "Success",
         description: "Teacher deleted successfully",
       });
-    } catch (error) {
-      console.error('Error deleting teacher:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete teacher. Please try again.",
         variant: "destructive",

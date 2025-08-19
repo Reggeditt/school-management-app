@@ -170,9 +170,7 @@ export function ExamFormDialog({
       }
 
       onClose();
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      toast({
+    } catch (error) {toast({
         title: 'Error',
         description: 'Failed to save exam. Please try again.',
         variant: 'destructive',

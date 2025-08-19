@@ -208,9 +208,7 @@ export default function TimetablePage() {
               dayOfWeek: day as any,
               room: `Room ${Math.floor(Math.random() * 20) + 1}`
             });
-          } else {
-            console.warn(`No teacher found for subject: ${subject.name} (${subject.id})`);
-          }
+          } else {}
         }
       }
     });
@@ -230,9 +228,7 @@ export default function TimetablePage() {
       const timeSlots = generateTimeSlots().filter(slot => slot.type === 'class');
       
       // Check if there are subjects assigned to this class
-      if (classSubjects.length === 0) {
-        console.warn(`No subjects assigned to class ${classData.name}`);
-        return;
+      if (classSubjects.length === 0) {return;
       }
       
       const timetableEntries: TimetableEntry[] = [];
@@ -259,9 +255,7 @@ export default function TimetablePage() {
         [classId]: timetableEntries
       }));
       
-    } catch (error) {
-      console.error('Error generating timetable:', error);
-    } finally {
+    } catch (error) {} finally {
       setIsGenerating(false);
     }
   };
@@ -269,32 +263,16 @@ export default function TimetablePage() {
   const generateAllTimetables = async () => {
     setIsGenerating(true);
     try {
-      // Debug: Log current data state
-      console.log('Classes available:', state.classes.length);
-      console.log('Subjects available:', state.subjects.length);
-      console.log('Teachers available:', state.teachers.length);
-      
-      // Debug: Check if subjects have classIds and teacherIds
-      state.subjects.forEach(subject => {
-        console.log(`Subject ${subject.name}:`, {
-          classIds: subject.classIds?.length || 0,
-          teacherIds: subject.teacherIds?.length || 0
-        });
-      });
+      // Debug: Log current data state// Debug: Check if subjects have classIds and teacherIds
+      state.subjects.forEach(subject => {});
       
       // Debug: Check if teachers have subjects
-      state.teachers.forEach(teacher => {
-        console.log(`Teacher ${teacher.firstName} ${teacher.lastName}:`, {
-          subjects: teacher.subjects?.length || 0
-        });
-      });
+      state.teachers.forEach(teacher => {});
       
       for (const classData of state.classes) {
         await generateTimetableForClass(classData.id);
       }
-    } catch (error) {
-      console.error('Error generating all timetables:', error);
-    } finally {
+    } catch (error) {} finally {
       setIsGenerating(false);
     }
   };

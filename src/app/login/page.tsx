@@ -43,10 +43,7 @@ function LoginForm() {
         router.refresh(); // Force a refresh to update middleware
       }, 500);
       
-    } catch (error: any) {
-      console.error('Login error:', error);
-      
-      toast({
+    } catch (error: any) {toast({
         title: "Authentication Failed",
         description: error.message || "Please check your credentials and try again.",
         variant: "destructive",

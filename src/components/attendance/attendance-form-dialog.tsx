@@ -150,9 +150,7 @@ export function AttendanceFormDialog({
       }
 
       onClose();
-    } catch (error) {
-      console.error('Error submitting attendance:', error);
-      toast({
+    } catch (error) {toast({
         title: 'Error',
         description: 'Failed to save attendance. Please try again.',
         variant: 'destructive',

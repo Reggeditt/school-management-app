@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { DemoSeedButton } from '@/components/demo-seed-button';
-import { DemoDeleteButton } from '@/components/demo-delete-button';
+import { appConfig } from '../../../app.config.js';
 
 export default function LandingPage() {
   return (
@@ -15,7 +14,7 @@ export default function LandingPage() {
             <span className="text-white font-bold text-xl">S</span>
           </div>
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            SchoolSync
+            {appConfig.app.name}
           </h1>
         </div>
         <nav className="hidden md:flex space-x-6 items-center">
@@ -61,30 +60,6 @@ export default function LandingPage() {
             <Button variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-950 text-lg py-6 px-8">
               Book a Demo
             </Button>
-          </div>
-          
-          {/* Demo Data Tools */}
-          <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-2xl border border-green-200 dark:border-green-800">
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
-                🧪 Development Tools
-              </h3>
-              <p className="text-sm text-green-700 dark:text-green-300 mb-4">
-                Manage your Firebase database with sample school data for testing and development
-              </p>
-              <div className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900 p-3 rounded-lg mb-4">
-                <strong>Seed Data:</strong> Creates complete school with 50 students, 3 teachers, 3 classes, 6 subjects, and 5 demo user accounts<br/>
-                <strong>Delete Data:</strong> Removes all demo data from the database (schools, students, teachers, etc.)
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="flex-1 max-w-xs">
-                <DemoSeedButton />
-              </div>
-              <div className="flex-1 max-w-xs">
-                <DemoDeleteButton />
-              </div>
-            </div>
           </div>
         </div>
         <div className="md:w-1/2 relative">
@@ -270,65 +245,15 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-              Flexible Pricing Plans
+              Simple, Per-Term Pricing
             </h2>
             <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-              Choose a plan that fits your school&apos;s size and needs. All plans include core features with scalable options.
+              Pay once per term for each student. No monthly subscriptions, no hidden fees. Perfect for Ghana's {appConfig.app.academicStructure.termsPerYear}-term academic calendar.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                name: "Basic",
-                price: "$29",
-                period: "/month",
-                description: "Perfect for small schools up to 100 students",
-                features: [
-                  "Student & Teacher Management",
-                  "Basic Attendance Tracking",
-                  "Grade Management",
-                  "Parent Communication",
-                  "Mobile App Access",
-                  "Email Support"
-                ],
-                popular: false,
-              },
-              {
-                name: "Professional",
-                price: "$89",
-                period: "/month",
-                description: "Ideal for medium schools up to 500 students",
-                features: [
-                  "Everything in Basic",
-                  "Advanced Analytics",
-                  "Financial Management",
-                  "Exam Management",
-                  "Timetable Management",
-                  "SMS Notifications",
-                  "Priority Support",
-                  "API Access"
-                ],
-                popular: true,
-              },
-              {
-                name: "Enterprise",
-                price: "Custom",
-                period: "",
-                description: "For large schools and multi-campus institutions",
-                features: [
-                  "Everything in Professional",
-                  "AI-Powered Insights",
-                  "Multi-Campus Management",
-                  "Advanced Reporting",
-                  "Custom Integrations",
-                  "Dedicated Support",
-                  "Training & Onboarding",
-                  "99.9% SLA"
-                ],
-                popular: false,
-              },
-            ].map((plan, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {appConfig.pricing.plans.map((plan, index) => (
               <Card key={index} className={`relative border-2 ${plan.popular ? 'border-indigo-500 shadow-2xl scale-105' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}>
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -340,8 +265,14 @@ export default function LandingPage() {
                 <CardHeader className="text-center pb-8">
                   <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">{plan.price}</span>
+                    <span className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">{appConfig.pricing.currency} {plan.price}</span>
                     <span className="text-gray-500 dark:text-gray-400">{plan.period}</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">{plan.studentRange}</span>
+                  </div>
+                  <div className="mt-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{plan.priceNote}</span>
                   </div>
                   <CardDescription className="mt-4">{plan.description}</CardDescription>
                 </CardHeader>
@@ -359,11 +290,77 @@ export default function LandingPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className={`w-full ${plan.popular ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white' : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-950'}`} variant={plan.popular ? 'default' : 'outline'}>
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
+                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
                   </Button>
                 </CardFooter>
               </Card>
             ))}
+          </div>
+          
+          {/* Pricing Explanation */}
+          <div className="mt-16 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8">
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
+                How Our Per-Term Pricing Works
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Pay Once Per Term</h4>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Align with Ghana's {appConfig.app.academicStructure.termsPerYear}-term academic calendar. Pay at the start of each term, no monthly commitments.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Student-Based Pricing</h4>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Only pay for registered students. Add or remove students within the term as needed.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-1">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Volume Discounts</h4>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Larger schools pay less per student. Scale savings built into every tier.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {appConfig.pricing.examples.map((example, index) => (
+                    <div key={index} className="bg-white dark:bg-gray-600 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{example.title}</h4>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        <p>{example.calculation}</p>
+                        <p className="font-semibold text-indigo-600 dark:text-indigo-400">Total: {example.total}</p>
+                        <p className="text-xs mt-1">{example.note}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="bg-white dark:bg-gray-600 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">What's Always Included</h4>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {appConfig.pricing.includedFeatures.map((feature, index) => (
+                        <p key={index}>✓ {feature}</p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -375,7 +372,7 @@ export default function LandingPage() {
             Ready to Transform Your School?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of schools across Africa that have already revolutionized their operations with SchoolSync.
+            Join thousands of schools across Africa that have already revolutionized their operations with {appConfig.app.name}.
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Button className="bg-white text-indigo-600 hover:bg-gray-100 text-lg py-6 px-8">
@@ -397,7 +394,7 @@ export default function LandingPage() {
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
                   <span className="text-white font-bold text-xl">S</span>
                 </div>
-                <h3 className="text-2xl font-bold">SchoolSync</h3>
+                <h3 className="text-2xl font-bold">{appConfig.app.name}</h3>
               </div>
               <p className="text-gray-400 mb-6">
                 Empowering African schools with modern technology for better education management.
@@ -454,7 +451,7 @@ export default function LandingPage() {
           
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 SchoolSync. All rights reserved.
+              © 2025 {appConfig.app.name}. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</a>

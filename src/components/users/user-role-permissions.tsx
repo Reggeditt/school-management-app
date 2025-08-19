@@ -169,9 +169,7 @@ export function UserRolePermissions() {
         title: "Success",
         description: "Role permissions updated successfully.",
       });
-    } catch (error) {
-      console.error('Error saving role permissions:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to save role permissions. Please try again.",
         variant: "destructive",

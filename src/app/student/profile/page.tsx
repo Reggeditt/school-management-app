@@ -57,7 +57,6 @@ export default function StudentProfile() {
     // Here you would typically update the student profile
     // For now, just close the edit mode
     setIsEditing(false);
-    console.log('Updated profile:', editedProfile);
   };
 
   const handleCancel = () => {

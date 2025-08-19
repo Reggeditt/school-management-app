@@ -279,7 +279,6 @@ export default function MessagesPage() {
       setMessages(mockMessages);
       setAnnouncements(mockAnnouncements);
     } catch (error) {
-      console.error("Error loading messages data:", error);
       toast({
         title: "Error",
         description: "Failed to load messages data",
@@ -333,7 +332,6 @@ export default function MessagesPage() {
         description: "Message sent successfully",
       });
     } catch (error) {
-      console.error("Error sending message:", error);
       toast({
         title: "Error",
         description: "Failed to send message",

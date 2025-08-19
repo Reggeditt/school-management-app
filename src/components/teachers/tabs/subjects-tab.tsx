@@ -57,9 +57,7 @@ export function SubjectsTab({ teacher }: SubjectsTabProps) {
 
   const handleAddSubject = () => {
     if (newSubject && subjectGrade) {
-      // Logic to add subject would go here
-      console.log('Adding subject:', newSubject, 'for grade:', subjectGrade);
-      setIsAddSubjectOpen(false);
+      // Logic to add subject would go heresetIsAddSubjectOpen(false);
       setNewSubject('');
       setSubjectGrade('');
     }

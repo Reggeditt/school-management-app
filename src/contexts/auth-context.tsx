@@ -51,14 +51,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          console.log('🔍 Auth state changed for user:', firebaseUser.email);
+
           
           // Get user profile from Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           const userData = userDoc.data();
           
-          console.log('📄 User document exists:', userDoc.exists());
-          console.log('📊 User data from Firestore:', userData);
+
+
           
           if (userData) {
             const appUser = {
@@ -69,14 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             setUser(appUser);
             
-            console.log('🍪 Setting cookies with role:', userData.role);
+  
             
             // Set auth cookies for middleware
             document.cookie = `auth-token=${await firebaseUser.getIdToken()}; path=/; max-age=3600`;
             document.cookie = `user-role=${userData.role}; path=/; max-age=3600`;
           } else {
-            console.log('⚠️ No user document found, creating default profile');
-            console.log('📧 User email:', firebaseUser.email);
+  
+  
             
             // For demo accounts, try to determine role from email
             let defaultRole: UserRole = 'student';
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
             
-            console.log('🎭 Determined default role:', defaultRole);
+  
             
             // Create default profile if doesn't exist
             const defaultProfile = {
@@ -112,14 +112,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             setUser(appUser);
             
-            console.log('🍪 Setting cookies with default role:', defaultProfile.role);
+  
             
             // Set auth cookies for middleware
             document.cookie = `auth-token=${await firebaseUser.getIdToken()}; path=/; max-age=3600`;
             document.cookie = `user-role=${defaultProfile.role}; path=/; max-age=3600`;
           }
         } catch (error) {
-          console.error('Error fetching user profile:', error);
           setUser(null);
           // Clear cookies on error
           document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -141,7 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      console.error('Sign in error:', error);
       throw error;
     }
   };
@@ -154,7 +152,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       await firebaseSignOut(auth);
     } catch (error) {
-      console.error('Sign out error:', error);
       throw error;
     }
   };
@@ -176,7 +173,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       await setDoc(doc(db, 'users', newUser.uid), userProfile);
     } catch (error) {
-      console.error('Account creation error:', error);
       throw error;
     }
   };

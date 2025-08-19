@@ -4,7 +4,6 @@ import { db } from '@/lib/firebase';
 
 export async function DELETE() {
   try {
-    console.log('Starting to delete seed data...');
     
     // Collections to clear
     const collections = [
@@ -26,7 +25,7 @@ export async function DELETE() {
 
     // Delete documents from each collection
     for (const collectionName of collections) {
-      console.log(`Deleting from ${collectionName}...`);
+
       const collectionRef = collection(db, collectionName);
       const snapshot = await getDocs(collectionRef);
       
@@ -39,8 +38,6 @@ export async function DELETE() {
     // Commit the batch
     await batch.commit();
     
-    console.log(`Successfully deleted ${totalDeleted} documents from Firestore`);
-
     return NextResponse.json({
       success: true,
       message: `Successfully deleted ${totalDeleted} documents from Firestore. Note: Firebase Auth users remain and will need to be deleted manually if needed.`,
@@ -49,7 +46,6 @@ export async function DELETE() {
     });
 
   } catch (error) {
-    console.error('Error deleting seed data:', error);
     return NextResponse.json(
       { 
         success: false, 

@@ -199,7 +199,6 @@ export default function AcademicProgress() {
       setChildren(mockChildren);
       setTermGrades(mockTermGrades);
     } catch (error) {
-      console.error("Error loading academic data:", error);
       toast({
         title: "Error",
         description: "Failed to load academic data",

@@ -43,9 +43,7 @@ export default function StudentDetailPage() {
           });
           router.push('/admin/students');
         }
-      } catch (error) {
-        console.error('Error loading student:', error);
-        toast({
+      } catch (error) {toast({
           title: "Error",
           description: "Failed to load student details",
           variant: "destructive"
@@ -77,9 +75,7 @@ export default function StudentDetailPage() {
         description: "Student deleted successfully",
       });
       router.push('/admin/students');
-    } catch (error) {
-      console.error('Error deleting student:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete student",
         variant: "destructive"

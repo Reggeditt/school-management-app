@@ -283,7 +283,6 @@ export default function StaffRecords() {
       setDepartments(mockDepartments);
       setPositions(mockPositions);
     } catch (error) {
-      console.error("Error loading staff data:", error);
       toast({
         title: "Error",
         description: "Failed to load staff data",
@@ -361,7 +360,6 @@ export default function StaffRecords() {
       });
       setIsAddStaffOpen(false);
     } catch (error) {
-      console.error("Error adding staff:", error);
       toast({
         title: "Error",
         description: "Failed to add staff member",

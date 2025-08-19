@@ -3,7 +3,6 @@ import { initializeDemoSchool, DemoDataSeeder } from '../../../lib/demo-data';
 
 export async function POST() {
   try {
-    console.log('🌱 Starting demo data seeding...');
     
     // Create demo school and seed with data
     const schoolId = await initializeDemoSchool();
@@ -21,7 +20,7 @@ export async function POST() {
       },
     });
   } catch (error: any) {
-    console.error('❌ Error seeding demo data:', error);
+
     
     return NextResponse.json(
       {
@@ -46,7 +45,7 @@ export async function DELETE(request: Request) {
       );
     }
     
-    console.log('🧹 Cleaning up demo data...');
+
     await DemoDataSeeder.cleanupDemoData(schoolId);
     
     return NextResponse.json({
@@ -54,7 +53,7 @@ export async function DELETE(request: Request) {
       message: 'Demo data cleaned up successfully!',
     });
   } catch (error: any) {
-    console.error('❌ Error cleaning up demo data:', error);
+
     
     return NextResponse.json(
       {

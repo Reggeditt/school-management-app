@@ -30,9 +30,7 @@ export function ClassesTab({ teacher, classes }: ClassesTabProps) {
   };
 
   const handleAssignClasses = () => {
-    // Logic to assign classes would go here
-    console.log('Assigning classes:', selectedClasses);
-    setIsAssignClassesOpen(false);
+    // Logic to assign classes would go heresetIsAssignClassesOpen(false);
     setSelectedClasses([]);
   };
 

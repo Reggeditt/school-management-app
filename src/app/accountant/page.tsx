@@ -170,9 +170,7 @@ export default function AccountantDashboard() {
       setRecentTransactions(mockRecentTransactions);
       setBudgetItems(mockBudgetItems);
       setPayrollSummary(mockPayrollSummary);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to load dashboard data",
         variant: "destructive",

@@ -210,7 +210,6 @@ export default function MyChildren() {
       setChildren(mockChildren);
       setAcademics(mockAcademics);
     } catch (error) {
-      console.error("Error loading children:", error);
       toast({
         title: "Error",
         description: "Failed to load children data",

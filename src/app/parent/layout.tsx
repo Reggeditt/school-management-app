@@ -93,7 +93,7 @@ export default function ParentLayout({ children }: ParentLayoutProps) {
     try {
       await signOut();
     } catch (error) {
-      console.error("Logout error:", error);
+      // Handle logout error silently
     }
   };
 

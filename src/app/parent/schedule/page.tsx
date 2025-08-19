@@ -229,9 +229,7 @@ export default function SchedulePage() {
       setClassSchedules(mockClassSchedules);
       setSchoolEvents(mockSchoolEvents);
       setAssignments(mockAssignments);
-    } catch (error) {
-      console.error("Error loading schedule data:", error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to load schedule data",
         variant: "destructive",

@@ -271,7 +271,6 @@ export default function FeeManagement() {
       setPayments(mockPayments);
       setStudents(mockStudents);
     } catch (error) {
-      console.error("Error loading fee data:", error);
       toast({
         title: "Error",
         description: "Failed to load fee management data",
@@ -336,7 +335,6 @@ export default function FeeManagement() {
       setPaymentMethod('cash');
       setIsPaymentDialogOpen(false);
     } catch (error) {
-      console.error("Error recording payment:", error);
       toast({
         title: "Error",
         description: "Failed to record payment",

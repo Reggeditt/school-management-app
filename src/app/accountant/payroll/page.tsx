@@ -270,7 +270,6 @@ export default function PayrollManagement() {
       setPayrollSummary(summary);
       setAttendanceData(mockAttendance);
     } catch (error) {
-      console.error("Error loading payroll data:", error);
       toast({
         title: "Error",
         description: "Failed to load payroll data",
@@ -313,7 +312,6 @@ export default function PayrollManagement() {
 
       setIsProcessPayrollOpen(false);
     } catch (error) {
-      console.error("Error processing payroll:", error);
       toast({
         title: "Error",
         description: "Failed to process payroll",

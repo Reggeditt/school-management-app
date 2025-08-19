@@ -43,9 +43,7 @@ export default function TeacherDetailPage() {
           });
           router.push('/admin/teachers');
         }
-      } catch (error) {
-        console.error('Error loading teacher:', error);
-        toast({
+      } catch (error) {toast({
           title: "Error",
           description: "Failed to load teacher details",
           variant: "destructive"
@@ -77,9 +75,7 @@ export default function TeacherDetailPage() {
         description: "Teacher deleted successfully",
       });
       router.push('/admin/teachers');
-    } catch (error) {
-      console.error('Error deleting teacher:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete teacher",
         variant: "destructive"

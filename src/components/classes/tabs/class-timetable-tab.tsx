@@ -159,9 +159,7 @@ export function ClassTimetableTab({ classItem, subjects, teachers }: ClassTimeta
         description: `Timetable generated for ${classItem.name}`,
       });
       
-    } catch (error) {
-      console.error('Error generating timetable:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to generate timetable",
         variant: "destructive"

@@ -164,7 +164,6 @@ export default function ClassDetailPage() {
       });
 
     } catch (error) {
-      console.error("Error loading class detail:", error);
       toast.error("Failed to load class details");
     } finally {
       setLoading(false);

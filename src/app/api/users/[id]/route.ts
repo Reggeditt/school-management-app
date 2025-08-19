@@ -33,9 +33,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       success: true,
       message: 'User updated successfully',
     });
-  } catch (error: any) {
-    console.error('Error updating user:', error);
-    return NextResponse.json(
+  } catch (error: any) {return NextResponse.json(
       { success: false, message: 'Failed to update user', error: error.message },
       { status: 500 }
     );
@@ -93,9 +91,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       success: true,
       message: 'User deleted successfully',
     });
-  } catch (error: any) {
-    console.error('Error deleting user:', error);
-    return NextResponse.json(
+  } catch (error: any) {return NextResponse.json(
       { success: false, message: 'Failed to delete user', error: error.message },
       { status: 500 }
     );

@@ -145,7 +145,6 @@ export default function TeacherClassesPage() {
       ]);
 
     } catch (error) {
-      console.error("Error loading classes:", error);
       toast.error("Failed to load classes");
     } finally {
       setLoading(false);

@@ -98,7 +98,7 @@ export default function TeacherLayout({ children }: TeacherLayoutProps) {
     try {
       await signOut();
     } catch (error) {
-      console.error("Logout error:", error);
+      // Handle logout error silently
     }
   };
 

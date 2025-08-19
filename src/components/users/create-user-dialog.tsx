@@ -155,9 +155,7 @@ export function CreateUserDialog({ onClose, onUserCreated }: CreateUserDialogPro
         throw new Error(data.message || 'Failed to create user');
       }
 
-    } catch (error) {
-      console.error('Error creating user:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create user. Please try again.",
         variant: "destructive",

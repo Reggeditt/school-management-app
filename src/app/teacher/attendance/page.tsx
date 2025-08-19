@@ -99,7 +99,6 @@ export default function TeacherAttendancePage() {
       }
 
     } catch (error) {
-      console.error("Error loading classes:", error);
       toast.error("Failed to load classes");
     } finally {
       setLoading(false);
@@ -130,7 +129,6 @@ export default function TeacherAttendancePage() {
       setStudents(mockStudents);
 
     } catch (error) {
-      console.error("Error loading students:", error);
       toast.error("Failed to load students");
     }
   };
@@ -148,7 +146,6 @@ export default function TeacherAttendancePage() {
         setStudents(existingRecord.students);
       }
     } catch (error) {
-      console.error("Error loading attendance record:", error);
     }
   };
 
@@ -205,7 +202,6 @@ export default function TeacherAttendancePage() {
       toast.success("Attendance saved successfully");
 
     } catch (error) {
-      console.error("Error saving attendance:", error);
       toast.error("Failed to save attendance");
     } finally {
       setSaving(false);

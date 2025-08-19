@@ -39,7 +39,6 @@ export function DemoSeedButton() {
         throw new Error(result.message || 'Failed to seed demo data');
       }
     } catch (error: any) {
-      console.error('Error seeding demo data:', error);
       toast({
         title: '❌ Seeding Failed',
         description: error.message || 'An error occurred while seeding demo data',

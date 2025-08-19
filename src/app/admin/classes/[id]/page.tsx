@@ -49,9 +49,7 @@ export default function ClassDetailPage() {
           });
           router.push('/admin/classes');
         }
-      } catch (error) {
-        console.error('Error loading class:', error);
-        toast({
+      } catch (error) {toast({
           title: "Error",
           description: "Failed to load class details",
           variant: "destructive"
@@ -83,9 +81,7 @@ export default function ClassDetailPage() {
         description: "Class deleted successfully",
       });
       router.push('/admin/classes');
-    } catch (error) {
-      console.error('Error deleting class:', error);
-      toast({
+    } catch (error) {toast({
         title: "Error",
         description: "Failed to delete class",
         variant: "destructive"

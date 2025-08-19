@@ -38,7 +38,6 @@ export function DemoDeleteButton() {
         throw new Error(result.message || 'Failed to delete demo data');
       }
     } catch (error: any) {
-      console.error('Error deleting demo data:', error);
       toast({
         title: '❌ Deletion Failed',
         description: error.message || 'An error occurred while deleting demo data',

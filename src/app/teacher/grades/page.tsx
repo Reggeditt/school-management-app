@@ -171,7 +171,6 @@ export default function TeacherGrades() {
 
       setGradeSummaries(summaries);
     } catch (error) {
-      console.error("Error loading grades:", error);
       toast({
         title: "Error",
         description: "Failed to load grades",

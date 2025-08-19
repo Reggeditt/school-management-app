@@ -73,9 +73,7 @@ export async function GET(request: NextRequest) {
                   department: user.role.charAt(0).toUpperCase() + user.role.slice(1),
                 };
             }
-          } catch (error) {
-            console.warn(`Failed to get profile for user ${user.id}:`, error);
-            additionalInfo = {
+          } catch (error) {additionalInfo = {
               name: user.email.split('@')[0],
               department: user.role.charAt(0).toUpperCase() + user.role.slice(1),
             };
@@ -102,9 +100,7 @@ export async function GET(request: NextRequest) {
       success: true,
       users: enhancedUsers,
     });
-  } catch (error: any) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
+  } catch (error: any) {return NextResponse.json(
       { success: false, message: 'Failed to fetch users', error: error.message },
       { status: 500 }
     );
@@ -194,15 +190,11 @@ export async function POST(request: NextRequest) {
       // If Firestore fails, try to delete the Firebase Auth user
       try {
         await firebaseUser.delete();
-      } catch (deleteError) {
-        console.error('Failed to cleanup Firebase Auth user:', deleteError);
-      }
+      } catch (deleteError) {}
       
       throw firestoreError;
     }
-  } catch (error: any) {
-    console.error('Error creating user:', error);
-    return NextResponse.json(
+  } catch (error: any) {return NextResponse.json(
       { success: false, message: 'Failed to create user', error: error.message },
       { status: 500 }
     );

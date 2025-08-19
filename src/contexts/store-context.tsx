@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useAuth } from './auth-context';
 import { DatabaseService, Student, Teacher, Class, Subject, Attendance, Exam, School } from '../lib/database-services';
 
@@ -16,6 +16,8 @@ export interface StoreState {
     attendance: boolean;
     exams: boolean;
     dashboard: boolean;
+    school: boolean;
+    preferences: boolean;
   };
   
   // Data collections
@@ -69,12 +71,22 @@ export type StoreAction =
   | { type: 'UPDATE_CLASS'; payload: { id: string; data: Partial<Class> } }
   | { type: 'DELETE_CLASS'; payload: string }
   | { type: 'SET_SUBJECTS'; payload: Subject[] }
+  | { type: 'ADD_SUBJECT'; payload: Subject }
+  | { type: 'UPDATE_SUBJECT'; payload: { id: string; data: Partial<Subject> } }
+  | { type: 'DELETE_SUBJECT'; payload: string }
   | { type: 'SET_ATTENDANCE'; payload: Attendance[] }
+  | { type: 'ADD_ATTENDANCE'; payload: Attendance }
+  | { type: 'UPDATE_ATTENDANCE'; payload: { id: string; data: Partial<Attendance> } }
+  | { type: 'DELETE_ATTENDANCE'; payload: string }
   | { type: 'SET_EXAMS'; payload: Exam[] }
+  | { type: 'ADD_EXAM'; payload: Exam }
+  | { type: 'UPDATE_EXAM'; payload: { id: string; data: Partial<Exam> } }
+  | { type: 'DELETE_EXAM'; payload: string }
   | { type: 'SET_SCHOOL'; payload: School }
   | { type: 'SET_STATS'; payload: Partial<StoreState['stats']> }
   | { type: 'SET_FILTERS'; payload: Partial<StoreState['filters']> }
   | { type: 'SET_ERROR'; payload: { key: string; error: string | null } }
+  | { type: 'SET_USER_PREFERENCES'; payload: any }
   | { type: 'CLEAR_ERRORS' };
 
 // Initial state
@@ -87,6 +99,8 @@ const initialState: StoreState = {
     attendance: false,
     exams: false,
     dashboard: false,
+    school: false,
+    preferences: false,
   },
   students: [],
   teachers: [],
@@ -239,6 +253,36 @@ function storeReducer(state: StoreState, action: StoreAction): StoreState {
         },
       };
       
+    case 'ADD_SUBJECT':
+      return {
+        ...state,
+        subjects: [...state.subjects, action.payload],
+        stats: {
+          ...state.stats,
+          totalSubjects: state.stats.totalSubjects + 1,
+        },
+      };
+      
+    case 'UPDATE_SUBJECT':
+      return {
+        ...state,
+        subjects: state.subjects.map(subject =>
+          subject.id === action.payload.id
+            ? { ...subject, ...action.payload.data }
+            : subject
+        ),
+      };
+      
+    case 'DELETE_SUBJECT':
+      return {
+        ...state,
+        subjects: state.subjects.filter(subject => subject.id !== action.payload),
+        stats: {
+          ...state.stats,
+          totalSubjects: state.stats.totalSubjects - 1,
+        },
+      };
+      
     case 'SET_SUBJECTS':
       return {
         ...state,
@@ -255,6 +299,28 @@ function storeReducer(state: StoreState, action: StoreAction): StoreState {
         attendance: action.payload,
       };
       
+    case 'ADD_ATTENDANCE':
+      return {
+        ...state,
+        attendance: [...state.attendance, action.payload],
+      };
+      
+    case 'UPDATE_ATTENDANCE':
+      return {
+        ...state,
+        attendance: state.attendance.map(attendance =>
+          attendance.id === action.payload.id
+            ? { ...attendance, ...action.payload.data }
+            : attendance
+        ),
+      };
+      
+    case 'DELETE_ATTENDANCE':
+      return {
+        ...state,
+        attendance: state.attendance.filter(attendance => attendance.id !== action.payload),
+      };
+      
     case 'SET_EXAMS':
       return {
         ...state,
@@ -262,6 +328,49 @@ function storeReducer(state: StoreState, action: StoreAction): StoreState {
         stats: {
           ...state.stats,
           activeExams: action.payload.filter(exam => exam.status === 'active').length,
+        },
+      };
+      
+    case 'ADD_EXAM':
+      return {
+        ...state,
+        exams: [...state.exams, action.payload],
+        stats: {
+          ...state.stats,
+          activeExams: action.payload.status === 'active' 
+            ? state.stats.activeExams + 1 
+            : state.stats.activeExams,
+        },
+      };
+      
+    case 'UPDATE_EXAM':
+      return {
+        ...state,
+        exams: state.exams.map(exam =>
+          exam.id === action.payload.id
+            ? { ...exam, ...action.payload.data }
+            : exam
+        ),
+        stats: {
+          ...state.stats,
+          activeExams: state.exams.filter(exam => 
+            exam.id === action.payload.id 
+              ? (action.payload.data.status || exam.status) === 'active'
+              : exam.status === 'active'
+          ).length,
+        },
+      };
+      
+    case 'DELETE_EXAM':
+      const deletedExam = state.exams.find(exam => exam.id === action.payload);
+      return {
+        ...state,
+        exams: state.exams.filter(exam => exam.id !== action.payload),
+        stats: {
+          ...state.stats,
+          activeExams: deletedExam?.status === 'active' 
+            ? state.stats.activeExams - 1 
+            : state.stats.activeExams,
         },
       };
       
@@ -298,6 +407,13 @@ function storeReducer(state: StoreState, action: StoreAction): StoreState {
         },
       };
       
+    case 'SET_USER_PREFERENCES':
+      return {
+        ...state,
+        // For now, we'll just store preferences in a simple way
+        // This can be expanded later to have proper user preferences structure
+      };
+      
     case 'CLEAR_ERRORS':
       return {
         ...state,
@@ -331,9 +447,26 @@ interface StoreContextType {
   deleteClass: (id: string) => Promise<void>;
   
   loadSubjects: () => Promise<void>;
+  addSubject: (subjectData: Omit<Subject, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateSubject: (id: string, data: Partial<Subject>) => Promise<void>;
+  deleteSubject: (id: string) => Promise<void>;
+  
   loadAttendance: (date?: Date) => Promise<void>;
+  addAttendance: (attendanceData: Omit<Attendance, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateAttendance: (id: string, data: Partial<Attendance>) => Promise<void>;
+  deleteAttendance: (id: string) => Promise<void>;
+  
   loadExams: () => Promise<void>;
+  addExam: (examData: Omit<Exam, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateExam: (id: string, data: Partial<Exam>) => Promise<void>;
+  deleteExam: (id: string) => Promise<void>;
+  
   loadDashboardData: () => Promise<void>;
+  
+  // Settings methods
+  loadSchool: () => Promise<void>;
+  updateSchool: (data: Partial<School>) => Promise<void>;
+  updateUserPreferences: (preferences: any) => Promise<void>;
   
   setFilters: (filters: Partial<StoreState['filters']>) => void;
   clearErrors: () => void;
@@ -360,7 +493,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const getSchoolId = () => user?.profile?.schoolId || 'demo-school';
 
   // Action creators
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'students', value: true } });
       dispatch({ type: 'SET_ERROR', payload: { key: 'students', error: null } });
@@ -375,7 +508,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'students', value: false } });
     }
-  };
+  }, [user?.profile?.schoolId, state.filters]);
 
   const addStudent = async (studentData: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -415,7 +548,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loadTeachers = async () => {
+  const loadTeachers = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'teachers', value: true } });
       dispatch({ type: 'SET_ERROR', payload: { key: 'teachers', error: null } });
@@ -430,7 +563,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'teachers', value: false } });
     }
-  };
+  }, [user?.profile?.schoolId, state.filters]);
 
   const addTeacher = async (teacherData: Omit<Teacher, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -470,7 +603,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loadClasses = async () => {
+  const loadClasses = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'classes', value: true } });
       dispatch({ type: 'SET_ERROR', payload: { key: 'classes', error: null } });
@@ -485,7 +618,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'classes', value: false } });
     }
-  };
+  }, [user?.profile?.schoolId, state.filters]);
 
   const addClass = async (classData: Omit<Class, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -525,7 +658,43 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loadSubjects = async () => {
+  // Subject methods
+  const addSubject = async (subjectData: Omit<Subject, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const schoolId = getSchoolId();
+      const id = await DatabaseService.createSubject({ ...subjectData, schoolId });
+      const newSubject = { ...subjectData, id, schoolId, createdAt: new Date(), updatedAt: new Date() };
+      dispatch({ type: 'ADD_SUBJECT', payload: newSubject });
+    } catch (error: any) {
+      console.error('Error adding subject:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+      throw error;
+    }
+  };
+
+  const updateSubject = async (id: string, data: Partial<Subject>) => {
+    try {
+      await DatabaseService.updateSubject(id, data);
+      dispatch({ type: 'UPDATE_SUBJECT', payload: { id, data } });
+    } catch (error: any) {
+      console.error('Error updating subject:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+      throw error;
+    }
+  };
+
+  const deleteSubject = async (id: string) => {
+    try {
+      await DatabaseService.deleteSubject(id);
+      dispatch({ type: 'DELETE_SUBJECT', payload: id });
+    } catch (error: any) {
+      console.error('Error deleting subject:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'subjects', error: error.message } });
+      throw error;
+    }
+  };
+
+  const loadSubjects = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'subjects', value: true } });
       const schoolId = getSchoolId();
@@ -537,9 +706,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'subjects', value: false } });
     }
-  };
+  }, [user?.profile?.schoolId]);
 
-  const loadAttendance = async (date?: Date) => {
+  const loadAttendance = useCallback(async (date?: Date) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'attendance', value: true } });
       const schoolId = getSchoolId();
@@ -551,9 +720,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'attendance', value: false } });
     }
+  }, [user?.profile?.schoolId]);
+
+  const addAttendance = async (attendanceData: Omit<Attendance, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newAttendance = await DatabaseService.createAttendance(attendanceData);
+      dispatch({ type: 'ADD_ATTENDANCE', payload: newAttendance });
+    } catch (error: any) {
+      console.error('Error adding attendance:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+      throw error;
+    }
   };
 
-  const loadExams = async () => {
+  const updateAttendance = async (id: string, data: Partial<Attendance>) => {
+    try {
+      const updatedAttendance = await DatabaseService.updateAttendance(id, data);
+      dispatch({ type: 'UPDATE_ATTENDANCE', payload: { id, data: updatedAttendance } });
+    } catch (error: any) {
+      console.error('Error updating attendance:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+      throw error;
+    }
+  };
+
+  const deleteAttendance = async (id: string) => {
+    try {
+      await DatabaseService.deleteAttendance(id);
+      dispatch({ type: 'DELETE_ATTENDANCE', payload: id });
+    } catch (error: any) {
+      console.error('Error deleting attendance:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'attendance', error: error.message } });
+      throw error;
+    }
+  };
+
+  const loadExams = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'exams', value: true } });
       const schoolId = getSchoolId();
@@ -565,9 +767,48 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'exams', value: false } });
     }
+  }, [user?.profile?.schoolId]);
+
+  const addExam = async (examData: Omit<Exam, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const examId = await DatabaseService.createExam(examData);
+      const newExam = { 
+        ...examData, 
+        id: examId, 
+        createdAt: new Date(), 
+        updatedAt: new Date() 
+      } as Exam;
+      dispatch({ type: 'ADD_EXAM', payload: newExam });
+    } catch (error: any) {
+      console.error('Error adding exam:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+      throw error;
+    }
   };
 
-  const loadDashboardData = async () => {
+  const updateExam = async (id: string, data: Partial<Exam>) => {
+    try {
+      const updatedExam = await DatabaseService.updateExam(id, data);
+      dispatch({ type: 'UPDATE_EXAM', payload: { id, data: updatedExam } });
+    } catch (error: any) {
+      console.error('Error updating exam:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+      throw error;
+    }
+  };
+
+  const deleteExam = async (id: string) => {
+    try {
+      await DatabaseService.deleteExam(id);
+      dispatch({ type: 'DELETE_EXAM', payload: id });
+    } catch (error: any) {
+      console.error('Error deleting exam:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'exams', error: error.message } });
+      throw error;
+    }
+  };
+
+  const loadDashboardData = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'dashboard', value: true } });
       const schoolId = getSchoolId();
@@ -580,23 +821,83 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         loadSubjects(),
       ]);
       
-      // Calculate attendance rate
+      // Calculate attendance rate (will be recalculated when students data loads)
       const todayAttendance = await DatabaseService.getAttendance(schoolId, new Date());
-      const totalStudents = state.students.length;
-      const presentStudents = todayAttendance.filter((att: Attendance) => att.status === 'present').length;
-      const attendanceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0;
+      // Note: We'll calculate attendance rate in a separate effect when students data changes
       
-      dispatch({ type: 'SET_STATS', payload: { attendanceRate } });
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       dispatch({ type: 'SET_ERROR', payload: { key: 'dashboard', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'dashboard', value: false } });
     }
-  };
+  }, [loadStudents, loadTeachers, loadClasses, loadSubjects]);
 
   const setFilters = (filters: Partial<StoreState['filters']>) => {
     dispatch({ type: 'SET_FILTERS', payload: filters });
+  };
+
+  // Settings methods
+  const loadSchool = useCallback(async () => {
+    try {
+      if (!user?.profile?.schoolId) {
+        throw new Error('No school ID found');
+      }
+      
+      dispatch({ type: 'SET_LOADING', payload: { key: 'school', value: true } });
+      
+      const school = await DatabaseService.getSchool(user.profile.schoolId);
+      if (school) {
+        dispatch({ type: 'SET_SCHOOL', payload: school });
+      }
+    } catch (error: any) {
+      console.error('Error loading school:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'school', error: error.message } });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: { key: 'school', value: false } });
+    }
+  }, [user?.profile?.schoolId]);
+
+  const updateSchool = async (data: Partial<School>) => {
+    try {
+      if (!user?.profile?.schoolId) {
+        throw new Error('No school ID found');
+      }
+      
+      dispatch({ type: 'SET_LOADING', payload: { key: 'school', value: true } });
+      
+      await DatabaseService.updateSchool(user.profile.schoolId, data);
+      
+      // Reload school data
+      const updatedSchool = await DatabaseService.getSchool(user.profile.schoolId);
+      if (updatedSchool) {
+        dispatch({ type: 'SET_SCHOOL', payload: updatedSchool });
+      }
+    } catch (error: any) {
+      console.error('Error updating school:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'school', error: error.message } });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: { key: 'school', value: false } });
+    }
+  };
+
+  const updateUserPreferences = async (preferences: any) => {
+    try {
+      if (!user?.uid) {
+        throw new Error('No user ID found');
+      }
+      
+      dispatch({ type: 'SET_LOADING', payload: { key: 'preferences', value: true } });
+      
+      // Update user preferences in database (this would be implemented in DatabaseService)
+      // For now, just update local state
+      dispatch({ type: 'SET_USER_PREFERENCES', payload: preferences });
+    } catch (error: any) {
+      console.error('Error updating user preferences:', error);
+      dispatch({ type: 'SET_ERROR', payload: { key: 'preferences', error: error.message } });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: { key: 'preferences', value: false } });
+    }
   };
 
   const clearErrors = () => {
@@ -608,7 +909,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (user?.profile?.schoolId) {
       loadDashboardData();
     }
-  }, [user?.profile?.schoolId]);
+  }, [user?.profile?.schoolId, loadDashboardData]);
+
+  // Calculate attendance rate when students data changes
+  useEffect(() => {
+    const calculateAttendanceRate = async () => {
+      if (state.students.length > 0 && user?.profile?.schoolId) {
+        try {
+          const schoolId = getSchoolId();
+          const todayAttendance = await DatabaseService.getAttendance(schoolId, new Date());
+          const totalStudents = state.students.length;
+          const presentStudents = todayAttendance.filter((att: Attendance) => att.status === 'present').length;
+          const attendanceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0;
+          
+          dispatch({ type: 'SET_STATS', payload: { attendanceRate } });
+        } catch (error: any) {
+          console.error('Error calculating attendance rate:', error);
+        }
+      }
+    };
+
+    calculateAttendanceRate();
+  }, [state.students.length, user?.profile?.schoolId]);
 
   const value: StoreContextType = {
     state,
@@ -626,9 +948,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     updateClass,
     deleteClass,
     loadSubjects,
+    addSubject,
+    updateSubject,
+    deleteSubject,
     loadAttendance,
+    addAttendance,
+    updateAttendance,
+    deleteAttendance,
     loadExams,
+    addExam,
+    updateExam,
+    deleteExam,
     loadDashboardData,
+    loadSchool,
+    updateSchool,
+    updateUserPreferences,
     setFilters,
     clearErrors,
   };

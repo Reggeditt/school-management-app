@@ -301,6 +301,24 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  static async updateSchool(id: string, updateData: Partial<Omit<School, 'id' | 'createdAt'>>): Promise<School> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...updateData,
+        updatedAt: new Date(),
+      });
+      
+      const docRef = doc(db, 'schools', id);
+      await updateDoc(docRef, data);
+      
+      const updatedDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(updatedDoc) as School;
+    } catch (error) {
+      console.error('Error updating school:', error);
+      throw error;
+    }
+  }
   
   // ==================== STUDENT METHODS ====================
   
@@ -671,6 +689,51 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  static async createAttendance(attendanceData: Omit<Attendance, 'id' | 'createdAt' | 'updatedAt'>): Promise<Attendance> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...attendanceData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      
+      const docRef = await addDoc(collection(db, 'attendance'), data);
+      const newDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(newDoc) as Attendance;
+    } catch (error) {
+      console.error('Error creating attendance:', error);
+      throw error;
+    }
+  }
+
+  static async updateAttendance(id: string, updateData: Partial<Omit<Attendance, 'id' | 'createdAt'>>): Promise<Attendance> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...updateData,
+        updatedAt: new Date(),
+      });
+      
+      const docRef = doc(db, 'attendance', id);
+      await updateDoc(docRef, data);
+      
+      const updatedDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(updatedDoc) as Attendance;
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      throw error;
+    }
+  }
+
+  static async deleteAttendance(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, 'attendance', id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting attendance:', error);
+      throw error;
+    }
+  }
   
   // ==================== EXAM METHODS ====================
   
@@ -706,6 +769,34 @@ export class DatabaseService {
       return docRef.id;
     } catch (error) {
       console.error('Error creating exam:', error);
+      throw error;
+    }
+  }
+
+  static async updateExam(id: string, updateData: Partial<Omit<Exam, 'id' | 'createdAt'>>): Promise<Exam> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...updateData,
+        updatedAt: new Date(),
+      });
+      
+      const docRef = doc(db, 'exams', id);
+      await updateDoc(docRef, data);
+      
+      const updatedDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(updatedDoc) as Exam;
+    } catch (error) {
+      console.error('Error updating exam:', error);
+      throw error;
+    }
+  }
+
+  static async deleteExam(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, 'exams', id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting exam:', error);
       throw error;
     }
   }
@@ -757,6 +848,81 @@ export class DatabaseService {
       return docRef.id;
     } catch (error: unknown) {
       console.error('Error creating user profile:', error);
+      throw error;
+    }
+  }
+
+  static async getAllUsers(schoolId?: string): Promise<User[]> {
+    try {
+      let q = collection(db, 'users');
+      
+      if (schoolId) {
+        q = query(collection(db, 'users'), where('schoolId', '==', schoolId));
+      }
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as User);
+    } catch (error) {
+      console.error('Error getting users:', error);
+      throw error;
+    }
+  }
+
+  static async updateUser(userId: string, updates: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const data = prepareDocumentForFirestore({
+        ...updates,
+        updatedAt: new Date(),
+      });
+      
+      await updateDoc(userRef, data);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  static async deleteUser(userId: string): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await deleteDoc(userRef);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
+  static async getUsersByRole(role: string, schoolId?: string): Promise<User[]> {
+    try {
+      let q = query(collection(db, 'users'), where('role', '==', role));
+      
+      if (schoolId) {
+        q = query(collection(db, 'users'), where('role', '==', role), where('schoolId', '==', schoolId));
+      }
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as User);
+    } catch (error) {
+      console.error('Error getting users by role:', error);
+      throw error;
+    }
+  }
+
+  static async toggleUserStatus(userId: string): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        await updateDoc(userRef, {
+          isActive: !userData.isActive,
+          updatedAt: Timestamp.fromDate(new Date())
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling user status:', error);
       throw error;
     }
   }

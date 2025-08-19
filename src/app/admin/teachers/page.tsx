@@ -1,169 +1,307 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useStore } from '@/contexts/store-context';
+import { useToast } from '@/components/ui/use-toast';
+import { Teacher } from '@/lib/database-services';
+import { DataTable, Column } from '@/components/ui/data-table';
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TeacherFormDialog } from '@/components/teachers/teacher-form-dialog';
+import { formatDate, getStatusColor } from '@/lib/form-utils';
 
 export default function TeachersPage() {
-  // Mock data for teachers
-  const teachers = [
+  const router = useRouter();
+  const { 
+    state, 
+    loadTeachers,
+    addTeacher, 
+    updateTeacher, 
+    deleteTeacher 
+  } = useStore();
+  const { toast } = useToast();
+  
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+
+  // Load data on component mount
+  useEffect(() => {
+    loadTeachers();
+  }, [loadTeachers]);
+
+  // Table columns configuration
+  const columns: Column<Teacher>[] = [
     {
-      id: "TCH001",
-      name: "Dr. Robert Anderson",
-      department: "Science",
-      subject: "Physics",
-      qualification: "Ph.D",
-      contactNumber: "+1234567890",
-      email: "robert.anderson@example.com",
-      status: "Active",
+      key: 'teacher',
+      title: 'Teacher',
+      render: (_, teacher) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={teacher.profilePicture} alt={`${teacher.firstName} ${teacher.lastName}`} />
+            <AvatarFallback>
+              {teacher.firstName[0]}{teacher.lastName[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{teacher.firstName} {teacher.lastName}</div>
+            <div className="text-sm text-muted-foreground">
+              {teacher.teacherId} • {teacher.designation}
+            </div>
+          </div>
+        </div>
+      )
     },
     {
-      id: "TCH002",
-      name: "Mrs. Sarah Johnson",
-      department: "Mathematics",
-      subject: "Algebra",
-      qualification: "M.Sc",
-      contactNumber: "+1234567891",
-      email: "sarah.johnson@example.com",
-      status: "Active",
+      key: 'department',
+      title: 'Department & Experience',
+      render: (_, teacher) => (
+        <div>
+          <div className="font-medium">{teacher.department}</div>
+          <div className="text-sm text-muted-foreground">
+            {teacher.experience} years experience
+          </div>
+        </div>
+      )
     },
     {
-      id: "TCH003",
-      name: "Mr. James Wilson",
-      department: "English",
-      subject: "Literature",
-      qualification: "M.A",
-      contactNumber: "+1234567892",
-      email: "james.wilson@example.com",
-      status: "Active",
+      key: 'contact',
+      title: 'Contact',
+      render: (_, teacher) => (
+        <div className="text-sm">
+          <div>{teacher.email}</div>
+          <div className="text-muted-foreground">{teacher.phone}</div>
+        </div>
+      )
     },
     {
-      id: "TCH004",
-      name: "Ms. Emily Davis",
-      department: "Social Studies",
-      subject: "History",
-      qualification: "M.Ed",
-      contactNumber: "+1234567893",
-      email: "emily.davis@example.com",
-      status: "On Leave",
+      key: 'qualification',
+      title: 'Qualification',
+      render: (_, teacher) => (
+        <div className="text-sm">
+          <div className="font-medium">{teacher.qualification}</div>
+          <div className="text-muted-foreground">
+            Joined: {formatDate(teacher.joiningDate)}
+          </div>
+        </div>
+      )
     },
     {
-      id: "TCH005",
-      name: "Mr. Michael Brown",
-      department: "Computer Science",
-      subject: "Programming",
-      qualification: "B.Tech",
-      contactNumber: "+1234567894",
-      email: "michael.brown@example.com",
-      status: "Active",
+      key: 'subjects',
+      title: 'Subjects & Classes',
+      render: (_, teacher) => (
+        <div className="text-sm">
+          <div className="font-medium">{teacher.subjects.length} subjects</div>
+          <div className="text-muted-foreground">{teacher.classes.length} classes</div>
+        </div>
+      )
     },
+    {
+      key: 'salary',
+      title: 'Salary',
+      render: (_, teacher) => (
+        <div className="text-sm font-medium">
+          ₹{teacher.salary.toLocaleString()}
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      render: (_, teacher) => (
+        <Badge className={getStatusColor(teacher.status)}>
+          {teacher.status}
+        </Badge>
+      )
+    }
   ];
+
+  // Filter options for the data table
+  const filterOptions = [
+    {
+      label: 'Department',
+      value: 'department',
+      options: [
+        { label: 'Mathematics', value: 'Mathematics' },
+        { label: 'Science', value: 'Science' },
+        { label: 'English', value: 'English' },
+        { label: 'Social Studies', value: 'Social Studies' },
+        { label: 'Computer Science', value: 'Computer Science' },
+        { label: 'Arts', value: 'Arts' },
+        { label: 'Physical Education', value: 'Physical Education' },
+        { label: 'Languages', value: 'Languages' }
+      ]
+    },
+    {
+      label: 'Designation',
+      value: 'designation',
+      options: [
+        { label: 'Head Teacher', value: 'Head Teacher' },
+        { label: 'Senior Teacher', value: 'Senior Teacher' },
+        { label: 'Subject Teacher', value: 'Subject Teacher' },
+        { label: 'Assistant Teacher', value: 'Assistant Teacher' },
+        { label: 'Substitute Teacher', value: 'Substitute Teacher' }
+      ]
+    },
+    {
+      label: 'Status',
+      value: 'status',
+      options: [
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
+        { label: 'Resigned', value: 'resigned' }
+      ]
+    },
+    {
+      label: 'Gender',
+      value: 'gender',
+      options: [
+        { label: 'Male', value: 'male' },
+        { label: 'Female', value: 'female' },
+        { label: 'Other', value: 'other' }
+      ]
+    }
+  ];
+
+  // Handle form submission
+  const handleFormSubmit = async (teacherData: Partial<Teacher>): Promise<boolean> => {
+    try {
+      if (selectedTeacher) {
+        // Update existing teacher
+        await updateTeacher(selectedTeacher.id, teacherData);
+        toast({
+          title: "Success",
+          description: "Teacher updated successfully",
+        });
+      } else {
+        // Add new teacher
+        await addTeacher(teacherData as Omit<Teacher, 'id' | 'createdAt' | 'updatedAt'>);
+        toast({
+          title: "Success", 
+          description: "Teacher added successfully",
+        });
+      }
+      return true;
+    } catch (error) {
+      console.error('Error saving teacher:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save teacher. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  // Handle teacher deletion
+  const handleDelete = async (teacher: Teacher) => {
+    if (!confirm(`Are you sure you want to delete ${teacher.firstName} ${teacher.lastName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteTeacher(teacher.id);
+      toast({
+        title: "Success",
+        description: "Teacher deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting teacher:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete teacher. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle add new teacher
+  const handleAddNew = () => {
+    setSelectedTeacher(null);
+    setIsFormOpen(true);
+  };
+
+  // Handle edit teacher
+  const handleEdit = (teacher: Teacher) => {
+    setSelectedTeacher(teacher);
+    setIsFormOpen(true);
+  };
+
+  // Handle view teacher
+  const handleView = (teacher: Teacher) => {
+    router.push(`/admin/teachers/${teacher.id}`);
+  };
+
+  // Action buttons for each row
+  const renderActions = (teacher: Teacher) => (
+    <div className="flex gap-1">
+      <Button 
+        size="sm" 
+        variant="outline"
+        onClick={() => handleView(teacher)}
+      >
+        View
+      </Button>
+      <Button 
+        size="sm" 
+        variant="outline"
+        onClick={() => handleEdit(teacher)}
+      >
+        Edit
+      </Button>
+      <Button 
+        size="sm" 
+        variant="destructive"
+        onClick={() => handleDelete(teacher)}
+      >
+        Delete
+      </Button>
+    </div>
+  );
+
+  // Handle export (placeholder for future implementation)
+  const handleExport = () => {
+    toast({
+      title: "Export Teachers",
+      description: "Export functionality coming soon!",
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Teachers</h1>
-        <Button>Add New Teacher</Button>
+      {/* Page Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Teachers Management</h1>
+        <p className="text-muted-foreground">
+          Manage teaching staff, qualifications, and assignments
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Teacher Management</CardTitle>
-          <CardDescription>
-            Manage all teachers in the school system. You can add, edit, or remove teachers.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Input 
-                placeholder="Search teachers..." 
-                className="w-[300px]"
-              />
-              <Button variant="outline">Search</Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <select className="border rounded px-2 py-1 text-sm">
-                <option value="">All Departments</option>
-                <option value="Science">Science</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="English">English</option>
-                <option value="Social Studies">Social Studies</option>
-                <option value="Computer Science">Computer Science</option>
-              </select>
-              <select className="border rounded px-2 py-1 text-sm">
-                <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
+      {/* Teachers Data Table */}
+      <DataTable
+        data={state.teachers}
+        columns={columns}
+        title="Teachers List"
+        description="Complete list of all teaching staff with their qualifications and assignments"
+        searchPlaceholder="Search teachers by name, ID, email, or department..."
+        filters={filterOptions}
+        actions={renderActions}
+        loading={state.loading.teachers}
+        onAdd={handleAddNew}
+        addButtonText="Add Teacher"
+        onExport={handleExport}
+        exportButtonText="Export Teachers"
+      />
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Qualification</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {teachers.map((teacher) => (
-                  <TableRow key={teacher.id}>
-                    <TableCell>{teacher.id}</TableCell>
-                    <TableCell className="font-medium">{teacher.name}</TableCell>
-                    <TableCell>{teacher.department}</TableCell>
-                    <TableCell>{teacher.subject}</TableCell>
-                    <TableCell>{teacher.qualification}</TableCell>
-                    <TableCell>{teacher.contactNumber}</TableCell>
-                    <TableCell>{teacher.email}</TableCell>
-                    <TableCell>
-                      <span 
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          teacher.status === 'Active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : teacher.status === 'On Leave' 
-                              ? 'bg-yellow-100 text-yellow-800' 
-                              : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {teacher.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">View</Button>
-                        <Button variant="outline" size="sm">Edit</Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
-              Showing 5 of 45 teachers
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm">
-                Next
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Teacher Form Dialog */}
+      <TeacherFormDialog
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        teacher={selectedTeacher}
+        existingTeachers={state.teachers}
+        onSubmit={handleFormSubmit}
+      />
     </div>
   );
 }

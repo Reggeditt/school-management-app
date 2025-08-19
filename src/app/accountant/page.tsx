@@ -338,7 +338,7 @@ export default function AccountantDashboard() {
                       <p className="font-medium text-sm">{transaction.description}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{transaction.category}</span>
-                        <Badge className={getStatusColor(transaction.status)} size="sm">
+                        <Badge className={getStatusColor(transaction.status)}>
                           {transaction.status}
                         </Badge>
                       </div>

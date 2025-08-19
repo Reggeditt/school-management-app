@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# School Management System (SMS) SaaS Platform
 
-## Getting Started
+A beautiful, colorful, modern, elegant, responsive, and accessible School Management System (SMS) SaaS platform built with Next.js, TypeScript, Tailwind CSS, shadcn UI, and Firebase.
 
-First, run the development server:
+## Project Setup
+
+This project uses pnpm as the package manager for better performance and disk space efficiency.
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- pnpm (v8 or later)
+
+### Installation
+
+1. Install pnpm globally if you haven't already:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install -g pnpm
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Development
 
-## Learn More
+To start the development server:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The application will be available at http://localhost:3000
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Building for Production
 
-## Deploy on Vercel
+To create a production build:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To start the production server:
+
+```bash
+pnpm start
+```
+
+## Project Structure
+
+- `app/` - Next.js application
+  - `src/` - Source code
+    - `app/` - Next.js App Router pages
+    - `components/` - React components
+    - `lib/` - Utility functions and shared code
+
+## Features
+
+- Beautiful, modern UI with Tailwind CSS and shadcn UI
+- Responsive design for all device sizes
+- Dark mode support
+- Role-based dashboards (admin, student, teacher, parent, etc.)
+- Authentication with Firebase
+- Database integration with Firebase
+
+## Package Management
+
+This project uses pnpm for package management. Some useful commands:
+
+- Add a dependency: `pnpm add <package-name>`
+- Add a dev dependency: `pnpm add -D <package-name>`
+- Update dependencies: `pnpm update`
+- Run scripts: `pnpm <script-name>`

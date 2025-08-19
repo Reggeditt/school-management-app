@@ -78,6 +78,7 @@ export interface Student {
 export interface Teacher {
   id: string;
   schoolId: string;
+  userId?: string; // Firebase Auth UID - links to the user account
   teacherId: string; // unique teacher ID like "TCH001"
   firstName: string;
   lastName: string;

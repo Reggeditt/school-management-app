@@ -380,9 +380,11 @@ export class DemoDataSeeder {
   
   // ==================== USER CREATION METHODS ====================
   
-  static async createDemoUsers(schoolId: string): Promise<void> {
+  static async createDemoUsers(schoolId: string): Promise<{ [email: string]: string }> {
     try {
       console.log('👥 Creating demo user accounts...');
+      
+      const userIdMap: { [email: string]: string } = {};
       
       for (const userData of this.DEMO_USERS) {
         try {
@@ -394,6 +396,7 @@ export class DemoDataSeeder {
           );
           
           const firebaseUser = userCredential.user;
+          userIdMap[userData.email] = firebaseUser.uid;
           
           // Create user profile in Firestore using the Firebase Auth UID as document ID
           const userProfile = {
@@ -404,6 +407,7 @@ export class DemoDataSeeder {
             permissions: this.getPermissionsForRole(userData.role),
             profile: {
               name: `${userData.firstName} ${userData.lastName}`,
+              schoolId, // Add schoolId to profile
               createdAt: new Date()
             },
             createdAt: new Date(),
@@ -413,7 +417,7 @@ export class DemoDataSeeder {
           // Use setDoc with the Firebase Auth UID as the document ID
           await setDoc(doc(db, 'users', firebaseUser.uid), userProfile);
           
-          console.log(`✅ Created user: ${userData.email} (${userData.role})`);
+          console.log(`✅ Created user: ${userData.email} (${userData.role}) UID: ${firebaseUser.uid}`);
           
           
         } catch (error: any) {
@@ -426,6 +430,7 @@ export class DemoDataSeeder {
       }
       
       console.log('✅ Demo user accounts created successfully!');
+      return userIdMap;
       
     } catch (error) {
       console.error('❌ Error creating demo users:', error);
@@ -481,6 +486,9 @@ export class DemoDataSeeder {
     try {
       console.log('🌱 Starting demo data seeding...');
       
+      // 0. Create demo users first and get the UID mapping
+      const userIdMap = await this.createDemoUsers(schoolId);
+      
       // 1. Create subjects
       console.log('📚 Creating subjects...');
       const subjectIds: string[] = [];
@@ -490,20 +498,25 @@ export class DemoDataSeeder {
       }
       console.log(`✅ Created ${subjectIds.length} subjects`);
       
-      // 2. Create teachers
+      // 2. Create teachers with linked user IDs
       console.log('👨‍🏫 Creating teachers...');
-      const teacherIds: string[] = [];
+      const teacherUserIds: string[] = [];
       for (const teacher of this.DEMO_TEACHERS) {
+        const userId = userIdMap[teacher.email];
         const id = await DatabaseService.createTeacher({ 
           ...teacher, 
           schoolId,
+          userId, // Link to Firebase Auth UID
           subjects: subjectIds.slice(0, 2), // Assign first 2 subjects to each teacher
         });
-        teacherIds.push(id);
+        // Store the Firebase Auth UID for class assignment
+        if (userId) {
+          teacherUserIds.push(userId);
+        }
       }
-      console.log(`✅ Created ${teacherIds.length} teachers`);
+      console.log(`✅ Created ${this.DEMO_TEACHERS.length} teachers`);
       
-      // 3. Create classes
+      // 3. Create classes with teacher UIDs
       console.log('🏫 Creating classes...');
       const classIds: string[] = [];
       for (let i = 0; i < this.DEMO_CLASSES.length; i++) {
@@ -511,7 +524,7 @@ export class DemoDataSeeder {
         const id = await DatabaseService.createClass({ 
           ...classData, 
           schoolId,
-          classTeacherId: teacherIds[i] || teacherIds[0],
+          classTeacherId: teacherUserIds[i] || teacherUserIds[0], // Use Firebase Auth UID
           subjects: subjectIds,
         });
         classIds.push(id);
@@ -549,14 +562,10 @@ export class DemoDataSeeder {
         });
       }
       
-      // 5. Create demo user accounts
-      console.log('👥 Creating demo user accounts...');
-      await this.createDemoUsers(schoolId);
-      
       console.log('🎉 Demo data seeding completed successfully!');
       console.log(`📊 Summary:
         - Subjects: ${subjectIds.length}
-        - Teachers: ${teacherIds.length}
+        - Teachers: ${this.DEMO_TEACHERS.length}
         - Classes: ${classIds.length}
         - Students: ${studentIds.length}
         - Demo Users: ${this.DEMO_USERS.length}

@@ -1,444 +1,456 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/contexts/auth-context';
+import { useStore } from '@/contexts/store-context';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TeacherService } from '@/lib/services/teacher-service';
+import { Class } from '@/lib/database-services';
+import { 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  Users, 
+  BookOpen, 
+  ChevronLeft, 
+  ChevronRight,
+  Plus,
+  Filter,
+  Download
+} from 'lucide-react';
 
 interface ScheduleEvent {
   id: string;
-  title: string;
+  classId: string;
+  className: string;
   subject: string;
-  class: string;
-  room: string;
-  startTime: Date;
-  endTime: Date;
-  type: 'class' | 'meeting' | 'duty' | 'break';
-  description?: string;
+  startTime: string;
+  endTime: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  classroom: string;
+  studentCount: number;
+  color: string;
 }
 
-interface TimeSlot {
-  time: string;
-  events: ScheduleEvent[];
-}
-
-export default function TeacherSchedule() {
+export default function TeacherSchedulePage() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [schedule, setSchedule] = useState<ScheduleEvent[]>([]);
+  const { state, loadClasses } = useStore();
+  const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedWeekStart, setSelectedWeekStart] = useState(new Date());
+  const [currentWeek, setCurrentWeek] = useState(0); // 0 = current week
+  const [selectedView, setSelectedView] = useState<'week' | 'day'>('week');
+  const [selectedDay, setSelectedDay] = useState(new Date().getDay());
+  
+  const teacherService = TeacherService.getInstance();
+  const teacherId = user?.uid || '';
 
   useEffect(() => {
-    loadSchedule();
-  }, [selectedWeekStart]);
-
-  const loadSchedule = async () => {
-    try {
-      setLoading(true);
+    const fetchTeacherData = async () => {
+      if (!teacherId) return;
       
-      // Mock data - replace with actual API call
-      const today = new Date();
-      const mockSchedule: ScheduleEvent[] = [
-        // Monday
-        {
-          id: '1',
-          title: 'Mathematics - Algebra',
-          subject: 'Mathematics',
-          class: 'Grade 9A',
-          room: 'Room 101',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 8, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 9, 0),
-          type: 'class',
-          description: 'Linear equations and problem solving'
-        },
-        {
-          id: '2',
-          title: 'Physics - Motion',
-          subject: 'Physics',
-          class: 'Grade 11A',
-          room: 'Lab 201',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 10, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 11, 0),
-          type: 'class',
-          description: 'Velocity and acceleration experiments'
-        },
-        {
-          id: '3',
-          title: 'Teacher Meeting',
-          subject: 'Administration',
-          class: 'All Teachers',
-          room: 'Conference Room',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 15, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 16, 0),
-          type: 'meeting',
-          description: 'Monthly curriculum review meeting'
-        },
-        // Tuesday
-        {
-          id: '4',
-          title: 'Mathematics - Geometry',
-          subject: 'Mathematics',
-          class: 'Grade 10B',
-          room: 'Room 102',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 2, 8, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 2, 9, 0),
-          type: 'class',
-          description: 'Triangles and geometric proofs'
-        },
-        {
-          id: '5',
-          title: 'Break Duty',
-          subject: 'Supervision',
-          class: 'All Grades',
-          room: 'Cafeteria',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 2, 12, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 2, 13, 0),
-          type: 'duty',
-          description: 'Lunch break supervision'
-        },
-        // Wednesday
-        {
-          id: '6',
-          title: 'Chemistry Lab',
-          subject: 'Chemistry',
-          class: 'Grade 10A',
-          room: 'Lab 301',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 3, 9, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 3, 10, 30),
-          type: 'class',
-          description: 'Chemical reactions practical experiments'
-        },
-        {
-          id: '7',
-          title: 'Mathematics - Statistics',
-          subject: 'Mathematics',
-          class: 'Grade 12A',
-          room: 'Room 105',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 3, 14, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 3, 15, 0),
-          type: 'class',
-          description: 'Probability and data analysis'
-        },
-        // Thursday
-        {
-          id: '8',
-          title: 'Physics - Electricity',
-          subject: 'Physics',
-          class: 'Grade 11B',
-          room: 'Lab 202',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 4, 10, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 4, 11, 30),
-          type: 'class',
-          description: 'Circuit analysis and Ohms law'
-        },
-        // Friday
-        {
-          id: '9',
-          title: 'Mathematics Review',
-          subject: 'Mathematics',
-          class: 'Grade 9B',
-          room: 'Room 103',
-          startTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 5, 8, 0),
-          endTime: new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 5, 9, 0),
-          type: 'class',
-          description: 'Weekly review and Q&A session'
-        }
-      ];
+      try {
+        setLoading(true);
+        await loadClasses();
+        const classes = await teacherService.getTeacherClasses(teacherId);
+        setTeacherClasses(classes);
+      } catch (error) {
+        console.error('Error fetching teacher data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setSchedule(mockSchedule);
-    } catch (error) {
-      console.error("Error loading schedule:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load schedule",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchTeacherData();
+  }, [teacherId, loadClasses, teacherService]);
 
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'class': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-100';
-      case 'meeting': return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900 dark:text-purple-100';
-      case 'duty': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-100';
-      case 'break': return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-100';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-100';
-    }
-  };
+  // Generate mock schedule data based on teacher's classes
+  const generateSchedule = (): ScheduleEvent[] => {
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-red-500'];
+    const classrooms = ['Room 101', 'Room 102', 'Lab A', 'Lab B', 'Auditorium'];
+    const timeSlots = [
+      { start: '08:00', end: '09:00' },
+      { start: '09:15', end: '10:15' },
+      { start: '10:30', end: '11:30' },
+      { start: '11:45', end: '12:45' },
+      { start: '14:00', end: '15:00' },
+      { start: '15:15', end: '16:15' },
+    ];
 
-  const getEventTypeIcon = (type: string) => {
-    switch (type) {
-      case 'class': return '📚';
-      case 'meeting': return '🤝';
-      case 'duty': return '👮';
-      case 'break': return '☕';
-      default: return '📅';
-    }
-  };
+    const schedule: ScheduleEvent[] = [];
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    teacherClasses.forEach((classItem, classIndex) => {
+      // Generate 2-3 sessions per class throughout the week
+      const sessionsPerWeek = Math.floor(Math.random() * 2) + 2; // 2-3 sessions
+      
+      for (let i = 0; i < sessionsPerWeek; i++) {
+        const dayOfWeek = (classIndex * 2 + i + 1) % 5 + 1; // Monday to Friday
+        const timeSlot = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+        
+        schedule.push({
+          id: `${classItem.id}-${dayOfWeek}-${i}`,
+          classId: classItem.id,
+          className: classItem.name,
+          subject: classItem.subjects?.[0] || 'General',
+          startTime: timeSlot.start,
+          endTime: timeSlot.end,
+          dayOfWeek,
+          classroom: classrooms[classIndex % classrooms.length],
+          studentCount: classItem.students?.length || 0,
+          color: colors[classIndex % colors.length]
+        });
+      }
+    });
+
+    return schedule.sort((a, b) => {
+      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+      return a.startTime.localeCompare(b.startTime);
     });
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const schedule = generateSchedule();
 
-  // Group events by day
-  const groupEventsByDay = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const getCurrentWeekDates = () => {
     const today = new Date();
-    const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - currentDay + 1 + (currentWeek * 7));
     
-    const weekDays = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + i);
-      return {
-        date,
-        dayName: days[i],
-        events: schedule.filter(event => {
-          const eventDate = new Date(event.startTime);
-          return eventDate.getDay() === i;
-        }).sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-      };
-    });
-
-    return weekDays;
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      weekDates.push(date);
+    }
+    return weekDates;
   };
 
-  // Get today's events
-  const getTodaysEvents = () => {
-    const today = new Date();
-    return schedule.filter(event => {
-      const eventDate = new Date(event.startTime);
-      return eventDate.toDateString() === today.toDateString();
-    }).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  const weekDates = getCurrentWeekDates();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const timeSlots = [
+    '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', 
+    '14:00', '15:00', '16:00', '17:00'
+  ];
+
+  const getEventsForDay = (dayOfWeek: number) => {
+    return schedule.filter(event => event.dayOfWeek === dayOfWeek);
   };
 
-  const weekDays = groupEventsByDay();
-  const todaysEvents = getTodaysEvents();
+  const getEventAtTime = (dayOfWeek: number, timeSlot: string) => {
+    return schedule.find(event => 
+      event.dayOfWeek === dayOfWeek && 
+      event.startTime <= timeSlot && 
+      event.endTime > timeSlot
+    );
+  };
+
+  const getTodayStats = () => {
+    const today = new Date().getDay();
+    const todayEvents = getEventsForDay(today);
+    return {
+      totalClasses: todayEvents.length,
+      totalStudents: todayEvents.reduce((sum, event) => sum + event.studentCount, 0),
+      nextClass: todayEvents.find(event => event.startTime > new Date().toTimeString().slice(0, 5)),
+      currentClass: todayEvents.find(event => {
+        const now = new Date().toTimeString().slice(0, 5);
+        return event.startTime <= now && event.endTime > now;
+      })
+    };
+  };
+
+  const todayStats = getTodayStats();
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Schedule</h1>
-        </div>
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-gray-300 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-3/4"></div>
-              </CardContent>
-            </Card>
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
           ))}
         </div>
+        <Skeleton className="h-96" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Schedule</h1>
           <p className="text-muted-foreground">
-            Your weekly teaching schedule and appointments
+            View your class timetable and manage your schedule
           </p>
         </div>
-        <Button>
-          📅 Export Schedule
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export Schedule
+          </Button>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Event
+          </Button>
+        </div>
       </div>
 
-      {/* Today's Schedule Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span>📅</span>
-            Today's Schedule
-          </CardTitle>
-          <CardDescription>
-            {formatDate(new Date())}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {todaysEvents.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <div className="text-4xl mb-2">🎉</div>
-              <p>No classes scheduled for today!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {todaysEvents.map((event) => (
-                <div key={event.id} className="flex items-center gap-4 p-3 rounded-lg border">
-                  <div className="text-2xl">{getEventTypeIcon(event.type)}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">{event.title}</h3>
-                      <Badge className={getEventTypeColor(event.type)}>
-                        {event.type}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <span>{formatTime(event.startTime)} - {formatTime(event.endTime)}</span>
-                      <span className="mx-2">•</span>
-                      <span>{event.room}</span>
-                      <span className="mx-2">•</span>
-                      <span>{event.class}</span>
-                    </div>
-                    {event.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Weekly Schedule */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Weekly Overview</CardTitle>
-          <CardDescription>
-            Complete schedule for this week
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {weekDays.filter(day => day.dayName !== 'Sunday' && day.dayName !== 'Saturday').map((day) => (
-              <Card key={day.dayName} className={day.date.toDateString() === new Date().toDateString() ? 'border-primary' : ''}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{day.dayName}</CardTitle>
-                  <CardDescription>
-                    {day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {day.events.length === 0 ? (
-                    <div className="text-center py-4 text-muted-foreground">
-                      <div className="text-2xl mb-1">📴</div>
-                      <p className="text-sm">No classes</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {day.events.map((event) => (
-                        <div key={event.id} className="p-2 rounded border">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm">{getEventTypeIcon(event.type)}</span>
-                            <span className="text-sm font-medium truncate">{event.title}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatTime(event.startTime)} - {formatTime(event.endTime)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {event.room} • {event.class}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Schedule Statistics */}
+      {/* Today's Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Classes This Week
-            </CardTitle>
-            <div className="text-2xl">📚</div>
+            <CardTitle className="text-sm font-medium">Today's Classes</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {schedule.filter(event => event.type === 'class').length}
-            </div>
+            <div className="text-2xl font-bold">{todayStats.totalClasses}</div>
             <p className="text-xs text-muted-foreground">
-              Regular class sessions
+              Scheduled sessions
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Meetings
-            </CardTitle>
-            <div className="text-2xl">🤝</div>
+            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {schedule.filter(event => event.type === 'meeting').length}
-            </div>
+            <div className="text-2xl font-bold">{todayStats.totalStudents}</div>
             <p className="text-xs text-muted-foreground">
-              Staff meetings scheduled
+              Students today
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Duty Hours
-            </CardTitle>
-            <div className="text-2xl">👮</div>
+            <CardTitle className="text-sm font-medium">Current Class</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {schedule.filter(event => event.type === 'duty').length}
+              {todayStats.currentClass ? todayStats.currentClass.className : 'None'}
             </div>
             <p className="text-xs text-muted-foreground">
-              Supervision duties
+              {todayStats.currentClass ? 
+                `${todayStats.currentClass.startTime} - ${todayStats.currentClass.endTime}` : 
+                'No active class'}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Teaching Hours
-            </CardTitle>
-            <div className="text-2xl">⏱️</div>
+            <CardTitle className="text-sm font-medium">Next Class</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {schedule.filter(event => event.type === 'class').reduce((total, event) => {
-                const duration = (event.endTime.getTime() - event.startTime.getTime()) / (1000 * 60 * 60);
-                return total + duration;
-              }, 0).toFixed(1)}h
+              {todayStats.nextClass ? todayStats.nextClass.startTime : 'None'}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total this week
+              {todayStats.nextClass ? todayStats.nextClass.className : 'No more classes today'}
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* View Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={selectedView === 'week' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedView('week')}
+          >
+            Week View
+          </Button>
+          <Button
+            variant={selectedView === 'day' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedView('day')}
+          >
+            Day View
+          </Button>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentWeek(prev => prev - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium px-4">
+            {weekDates[1].toLocaleDateString('en-US', { 
+              month: 'long', 
+              day: 'numeric' 
+            })} - {weekDates[5].toLocaleDateString('en-US', { 
+              month: 'long', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentWeek(prev => prev + 1)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Schedule Grid */}
+      {selectedView === 'week' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Schedule</CardTitle>
+            <CardDescription>Your class timetable for the week</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-8 gap-2 min-w-full">
+                {/* Header */}
+                <div className="p-2 font-medium text-sm">Time</div>
+                {weekDates.slice(1, 6).map((date, index) => (
+                  <div key={index} className="p-2 text-center">
+                    <div className="font-medium text-sm">
+                      {dayNames[index + 1]}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {date.getDate()}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Time slots */}
+                {timeSlots.map(timeSlot => (
+                  <React.Fragment key={timeSlot}>
+                    <div className="p-2 text-sm text-muted-foreground border-t">
+                      {timeSlot}
+                    </div>
+                    {[1, 2, 3, 4, 5].map(dayOfWeek => {
+                      const event = getEventAtTime(dayOfWeek, timeSlot);
+                      return (
+                        <div key={`${dayOfWeek}-${timeSlot}`} className="p-1 border-t min-h-[60px]">
+                          {event && (
+                            <div className={`${event.color} text-white p-2 rounded text-xs h-full`}>
+                              <div className="font-medium truncate">{event.className}</div>
+                              <div className="text-xs opacity-90">{event.subject}</div>
+                              <div className="text-xs opacity-80 flex items-center">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {event.classroom}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>
+                  {dayNames[selectedDay]} Schedule
+                </CardTitle>
+                <CardDescription>
+                  {weekDates[selectedDay].toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </CardDescription>
+              </div>
+              <select
+                value={selectedDay}
+                onChange={(e) => setSelectedDay(Number(e.target.value))}
+                className="px-3 py-2 border rounded-md text-sm"
+              >
+                {dayNames.map((day, index) => (
+                  <option key={index} value={index}>{day}</option>
+                ))}
+              </select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {getEventsForDay(selectedDay).length > 0 ? (
+                getEventsForDay(selectedDay).map(event => (
+                  <div key={event.id} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-4 h-4 rounded ${event.color}`}></div>
+                        <div>
+                          <div className="font-medium">{event.className}</div>
+                          <div className="text-sm text-muted-foreground">{event.subject}</div>
+                        </div>
+                      </div>
+                      <Badge variant="outline">
+                        {event.startTime} - {event.endTime}
+                      </Badge>
+                    </div>
+                    <div className="mt-2 flex items-center text-sm text-muted-foreground space-x-4">
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {event.classroom}
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-1" />
+                        {event.studentCount} students
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No classes scheduled for this day.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common schedule-related tasks</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <Button variant="outline" className="justify-start">
+              <Calendar className="h-4 w-4 mr-2" />
+              View Full Calendar
+            </Button>
+            <Button variant="outline" className="justify-start">
+              <Clock className="h-4 w-4 mr-2" />
+              Set Reminders
+            </Button>
+            <Button variant="outline" className="justify-start">
+              <Users className="h-4 w-4 mr-2" />
+              Class Details
+            </Button>
+            <Button variant="outline" className="justify-start">
+              <Download className="h-4 w-4 mr-2" />
+              Print Schedule
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

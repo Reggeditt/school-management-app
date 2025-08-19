@@ -1,275 +1,353 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/contexts/auth-context';
+import { useStore } from '@/contexts/store-context';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TeacherService } from '@/lib/services/teacher-service';
+import { Class } from '@/lib/database-services';
+import { FileText, Plus, Calendar, Users, CheckCircle, Clock, Eye, Edit, Trash2 } from 'lucide-react';
 
-interface Assignment {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  class: string;
-  dueDate: Date;
-  assignedDate: Date;
-  totalPoints: number;
-  status: 'draft' | 'published' | 'overdue' | 'completed';
-  submissionCount: number;
-  totalStudents: number;
-  type: 'homework' | 'project' | 'quiz' | 'exam';
-}
-
-export default function TeacherAssignments() {
+export default function TeacherAssignmentsPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const { state, loadClasses } = useStore();
+  const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState('all');
+  
+  const teacherService = TeacherService.getInstance();
+  const teacherId = user?.uid || '';
 
   useEffect(() => {
-    loadAssignments();
-  }, []);
-
-  const loadAssignments = async () => {
-    try {
-      setLoading(true);
+    const fetchTeacherData = async () => {
+      if (!teacherId) return;
       
-      // Mock data - replace with actual API call
-      const mockAssignments: Assignment[] = [
-        {
-          id: '1',
-          title: 'Algebra Chapter 5 Homework',
-          description: 'Complete exercises 1-20 from Chapter 5: Linear Equations',
-          subject: 'Mathematics',
-          class: 'Grade 9A',
-          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          totalPoints: 100,
-          status: 'published',
-          submissionCount: 18,
-          totalStudents: 25,
-          type: 'homework'
-        },
-        {
-          id: '2',
-          title: 'Science Fair Project',
-          description: 'Design and conduct an experiment related to chemical reactions',
-          subject: 'Chemistry',
-          class: 'Grade 10B',
-          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          totalPoints: 200,
-          status: 'published',
-          submissionCount: 12,
-          totalStudents: 22,
-          type: 'project'
-        },
-        {
-          id: '3',
-          title: 'Physics Quiz - Motion',
-          description: 'Quiz covering velocity, acceleration, and displacement',
-          subject: 'Physics',
-          class: 'Grade 11A',
-          dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-          totalPoints: 50,
-          status: 'overdue',
-          submissionCount: 19,
-          totalStudents: 20,
-          type: 'quiz'
-        },
-        {
-          id: '4',
-          title: 'Essay: Modern Literature',
-          description: 'Write a 1000-word essay analyzing themes in contemporary literature',
-          subject: 'English',
-          class: 'Grade 12A',
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          totalPoints: 150,
-          status: 'published',
-          submissionCount: 8,
-          totalStudents: 18,
-          type: 'homework'
-        }
-      ];
+      try {
+        setLoading(true);
+        await loadClasses();
+        const classes = await teacherService.getTeacherClasses(teacherId);
+        setTeacherClasses(classes);
+      } catch (error) {
+        console.error('Error fetching teacher data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setAssignments(mockAssignments);
-    } catch (error) {
-      console.error("Error loading assignments:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load assignments",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    fetchTeacherData();
+  }, [teacherId, loadClasses, teacherService]);
+
+  // Mock assignments data
+  const assignments = [
+    {
+      id: '1',
+      title: 'Math Quiz - Chapter 5',
+      subject: 'Mathematics',
+      class: 'Grade 10-A',
+      classId: 'class1',
+      type: 'quiz',
+      dueDate: '2024-03-25',
+      totalMarks: 50,
+      status: 'active',
+      submissions: 28,
+      totalStudents: 30,
+      averageScore: 42,
+      createdAt: '2024-03-20'
+    },
+    {
+      id: '2',
+      title: 'Science Lab Report',
+      subject: 'Physics',
+      class: 'Grade 10-B',
+      classId: 'class2',
+      type: 'report',
+      dueDate: '2024-03-27',
+      totalMarks: 100,
+      status: 'active',
+      submissions: 25,
+      totalStudents: 28,
+      averageScore: 78,
+      createdAt: '2024-03-18'
+    },
+    {
+      id: '3',
+      title: 'History Essay - World War II',
+      subject: 'History',
+      class: 'Grade 9-A',
+      classId: 'class3',
+      type: 'essay',
+      dueDate: '2024-03-15',
+      totalMarks: 75,
+      status: 'completed',
+      submissions: 30,
+      totalStudents: 30,
+      averageScore: 65,
+      createdAt: '2024-03-10'
+    },
+    {
+      id: '4',
+      title: 'English Literature Analysis',
+      subject: 'English',
+      class: 'Grade 11-A',
+      classId: 'class4',
+      type: 'analysis',
+      dueDate: '2024-03-30',
+      totalMarks: 80,
+      status: 'draft',
+      submissions: 0,
+      totalStudents: 25,
+      averageScore: 0,
+      createdAt: '2024-03-22'
     }
-  };
+  ];
 
-  const filteredAssignments = assignments.filter(assignment => 
-    assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    assignment.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    assignment.class.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAssignments = assignments.filter(assignment => {
+    if (activeFilter === 'all') return true;
+    return assignment.status === activeFilter;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-      case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
-      case 'overdue': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
-      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
+      case 'active': return 'default';
+      case 'completed': return 'secondary';
+      case 'draft': return 'outline';
+      case 'overdue': return 'destructive';
+      default: return 'outline';
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'homework': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      case 'project': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
-      case 'quiz': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
-      case 'exam': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
+      case 'quiz': return '📝';
+      case 'report': return '📄';
+      case 'essay': return '✍️';
+      case 'analysis': return '🔍';
+      default: return '📋';
     }
   };
 
-  const handleCreateAssignment = () => {
-    toast({
-      title: "Feature Coming Soon",
-      description: "Assignment creation will be available soon",
-    });
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const getSubmissionRate = (submissions: number, total: number) => {
+    return Math.round((submissions / total) * 100);
   };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Assignments</h1>
-        </div>
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-gray-300 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-3/4"></div>
-              </CardContent>
-            </Card>
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
           ))}
         </div>
+        <Skeleton className="h-64" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Assignments</h1>
           <p className="text-muted-foreground">
-            Manage and track assignments for your classes
+            Create and manage assignments for your classes
           </p>
         </div>
-        <Button onClick={handleCreateAssignment}>
-          + Create Assignment
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Assignment
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search assignments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Assignments</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignments.length}</div>
+            <p className="text-xs text-muted-foreground">
+              This semester
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignments.filter(a => a.status === 'active').length}</div>
+            <p className="text-xs text-muted-foreground">
+              Currently open
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Grading</CardTitle>
+            <CheckCircle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {assignments.filter(a => a.status === 'active').reduce((acc, a) => acc + a.submissions, 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Submissions to grade
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Submission Rate</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.round(assignments.reduce((acc, a) => acc + getSubmissionRate(a.submissions, a.totalStudents), 0) / assignments.length)}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Student completion
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Assignments Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredAssignments.map((assignment) => (
-          <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{assignment.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {assignment.description}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Badge className={getStatusColor(assignment.status)}>
-                  {assignment.status}
-                </Badge>
-                <Badge variant="outline" className={getTypeColor(assignment.type)}>
-                  {assignment.type}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span>📚 {assignment.subject} - {assignment.class}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>📅 Due: {formatDate(assignment.dueDate)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>👥 {assignment.submissionCount}/{assignment.totalStudents} submitted</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>⏱️ {assignment.totalPoints} points</span>
-                </div>
-              </div>
-
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                <div 
-                  className="bg-primary h-2 rounded-full" 
-                  style={{ width: `${(assignment.submissionCount / assignment.totalStudents) * 100}%` }}
-                ></div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Filters */}
+      <div className="flex space-x-2">
+        {['all', 'active', 'completed', 'draft'].map(filter => (
+          <Button
+            key={filter}
+            size="sm"
+            variant={activeFilter === filter ? "default" : "outline"}
+            onClick={() => setActiveFilter(filter)}
+          >
+            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+          </Button>
         ))}
       </div>
 
-      {filteredAssignments.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              {searchTerm 
-                ? "Try adjusting your search terms."
-                : "Get started by creating your first assignment."}
-            </p>
-            {!searchTerm && (
-              <Button onClick={handleCreateAssignment}>
-                + Create Assignment
+      {/* Assignments List */}
+      <div className="space-y-4">
+        {filteredAssignments.length > 0 ? (
+          filteredAssignments.map(assignment => {
+            const submissionRate = getSubmissionRate(assignment.submissions, assignment.totalStudents);
+            const isOverdue = new Date(assignment.dueDate) < new Date() && assignment.status === 'active';
+            
+            return (
+              <Card key={assignment.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl">{getTypeIcon(assignment.type)}</div>
+                      <div>
+                        <CardTitle className="text-lg">{assignment.title}</CardTitle>
+                        <CardDescription>
+                          {assignment.class} • {assignment.subject} • {assignment.totalMarks} marks
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {isOverdue && <Badge variant="destructive">Overdue</Badge>}
+                      <Badge variant={getStatusColor(assignment.status)}>
+                        {assignment.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Assignment Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Due Date:</span>
+                      <div className="font-medium">{new Date(assignment.dueDate).toLocaleDateString()}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Submissions:</span>
+                      <div className="font-medium">{assignment.submissions}/{assignment.totalStudents}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Submission Rate:</span>
+                      <div className="font-medium">{submissionRate}%</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Average Score:</span>
+                      <div className="font-medium">
+                        {assignment.averageScore > 0 ? `${assignment.averageScore}/${assignment.totalMarks}` : 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  {assignment.status !== 'draft' && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Submission Progress</span>
+                        <span>{submissionRate}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full" 
+                          style={{ width: `${submissionRate}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-2 pt-2">
+                    <Button size="sm" variant="outline">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    {assignment.status === 'active' && (
+                      <Button size="sm" variant="outline">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Grade ({assignment.submissions})
+                      </Button>
+                    )}
+                    {assignment.status === 'draft' && (
+                      <Button size="sm">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Publish
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Assignments Found</h3>
+              <p className="text-muted-foreground mb-4">
+                {activeFilter === 'all' ? 'Create your first assignment to get started.' : `No ${activeFilter} assignments found.`}
+              </p>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Assignment
               </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

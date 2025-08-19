@@ -1,181 +1,81 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useAuth } from "@/contexts/auth-context";
-import { toast } from "sonner";
-import Link from "next/link";
-import {
-  Users,
-  Search,
-  Calendar,
-  Clock,
-  BookOpen,
-  ClipboardList,
-  GraduationCap,
-  Eye,
-  FileText,
-  BarChart3
-} from "lucide-react";
-
-interface ClassInfo {
-  id: string;
-  name: string;
-  subject: string;
-  grade: string;
-  studentsCount: number;
-  schedule: {
-    day: string;
-    time: string;
-    room: string;
-  }[];
-  nextClass?: {
-    day: string;
-    time: string;
-    room: string;
-  };
-  recentAttendance: number;
-  pendingAssignments: number;
-  avgGrade: number;
-}
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/contexts/auth-context';
+import { useStore } from '@/contexts/store-context';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TeacherService } from '@/lib/services/teacher-service';
+import { Class, Student } from '@/lib/database-services';
+import { Users, Calendar, Clock, BookOpen, BarChart3, Plus, Eye } from 'lucide-react';
 
 export default function TeacherClassesPage() {
   const { user } = useAuth();
+  const { state, loadClasses, loadStudents } = useStore();
+  const [teacherClasses, setTeacherClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [classes, setClasses] = useState<ClassInfo[]>([]);
+  
+  const teacherService = TeacherService.getInstance();
+  const teacherId = user?.uid || '';
 
   useEffect(() => {
-    loadClasses();
-  }, [user]);
-
-  const loadClasses = async () => {
-    if (!user?.profile?.schoolId) return;
-
-    try {
-      setLoading(true);
+    const fetchTeacherClasses = async () => {
+      if (!teacherId) return;
       
-      // Simulate loading classes data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock data for demonstration
-      setClasses([
-        {
-          id: '1',
-          name: 'Grade 10A',
-          subject: 'Mathematics',
-          grade: '10',
-          studentsCount: 28,
-          schedule: [
-            { day: 'Monday', time: '8:00 AM - 9:00 AM', room: 'Room 201' },
-            { day: 'Wednesday', time: '10:00 AM - 11:00 AM', room: 'Room 201' },
-            { day: 'Friday', time: '2:00 PM - 3:00 PM', room: 'Room 201' }
-          ],
-          nextClass: { day: 'Monday', time: '8:00 AM', room: 'Room 201' },
-          recentAttendance: 96,
-          pendingAssignments: 3,
-          avgGrade: 85
-        },
-        {
-          id: '2',
-          name: 'Grade 9B',
-          subject: 'Science',
-          grade: '9',
-          studentsCount: 25,
-          schedule: [
-            { day: 'Tuesday', time: '9:00 AM - 10:00 AM', room: 'Lab 1' },
-            { day: 'Thursday', time: '11:00 AM - 12:00 PM', room: 'Lab 1' }
-          ],
-          nextClass: { day: 'Tuesday', time: '9:00 AM', room: 'Lab 1' },
-          recentAttendance: 92,
-          pendingAssignments: 1,
-          avgGrade: 78
-        },
-        {
-          id: '3',
-          name: 'Grade 10B',
-          subject: 'Mathematics',
-          grade: '10',
-          studentsCount: 30,
-          schedule: [
-            { day: 'Monday', time: '11:00 AM - 12:00 PM', room: 'Room 202' },
-            { day: 'Wednesday', time: '2:00 PM - 3:00 PM', room: 'Room 202' },
-            { day: 'Friday', time: '9:00 AM - 10:00 AM', room: 'Room 202' }
-          ],
-          nextClass: { day: 'Monday', time: '11:00 AM', room: 'Room 202' },
-          recentAttendance: 89,
-          pendingAssignments: 2,
-          avgGrade: 82
-        },
-        {
-          id: '4',
-          name: 'Grade 11A',
-          subject: 'Advanced Mathematics',
-          grade: '11',
-          studentsCount: 22,
-          schedule: [
-            { day: 'Tuesday', time: '1:00 PM - 2:00 PM', room: 'Room 201' },
-            { day: 'Thursday', time: '8:00 AM - 9:00 AM', room: 'Room 201' }
-          ],
-          nextClass: { day: 'Tuesday', time: '1:00 PM', room: 'Room 201' },
-          recentAttendance: 95,
-          pendingAssignments: 4,
-          avgGrade: 88
-        },
-        {
-          id: '5',
-          name: 'Grade 8C',
-          subject: 'Basic Mathematics',
-          grade: '8',
-          studentsCount: 32,
-          schedule: [
-            { day: 'Monday', time: '2:00 PM - 3:00 PM', room: 'Room 105' },
-            { day: 'Wednesday', time: '8:00 AM - 9:00 AM', room: 'Room 105' },
-            { day: 'Friday', time: '11:00 AM - 12:00 PM', room: 'Room 105' }
-          ],
-          nextClass: { day: 'Monday', time: '2:00 PM', room: 'Room 105' },
-          recentAttendance: 88,
-          pendingAssignments: 1,
-          avgGrade: 75
-        }
-      ]);
+      try {
+        setLoading(true);
+        
+        // Load data from store first
+        await Promise.all([loadClasses(), loadStudents()]);
+        
+        // Get teacher's classes
+        const classes = await teacherService.getTeacherClasses(teacherId);
+        setTeacherClasses(classes);
+      } catch (error) {
+        console.error('Error fetching teacher classes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    } catch (error) {
-      console.error("Error loading classes:", error);
-      toast.error("Failed to load classes");
-    } finally {
-      setLoading(false);
-    }
+    fetchTeacherClasses();
+  }, [teacherId, loadClasses, loadStudents, teacherService]);
+
+  const getClassStats = (classObj: Class) => {
+    const currentEnrollment = classObj.students?.length || 0;
+    const maxCapacity = classObj.maxCapacity || 30;
+    const capacityPercentage = Math.round((currentEnrollment / maxCapacity) * 100);
+    
+    // Mock additional stats
+    const avgGrade = Math.floor(Math.random() * 15) + 80; // 80-95
+    const attendanceRate = Math.floor(Math.random() * 10) + 85; // 85-95
+    
+    return {
+      currentEnrollment,
+      maxCapacity,
+      capacityPercentage,
+      avgGrade,
+      attendanceRate
+    };
   };
 
-  const filteredClasses = classes.filter((classInfo) =>
-    classInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    classInfo.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    classInfo.grade.includes(searchTerm)
-  );
-
-  const getAttendanceColor = (attendance: number) => {
-    if (attendance >= 95) return 'bg-green-100 text-green-800 border-green-200';
-    if (attendance >= 85) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    return 'bg-red-100 text-red-800 border-red-200';
-  };
-
-  const getGradeColor = (grade: number) => {
-    if (grade >= 85) return 'bg-green-100 text-green-800 border-green-200';
-    if (grade >= 75) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    return 'bg-red-100 text-red-800 border-red-200';
+  const getCapacityBadgeVariant = (percentage: number) => {
+    if (percentage >= 90) return 'destructive';
+    if (percentage >= 75) return 'outline';
+    return 'secondary';
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading classes...</p>
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-64" />
+          ))}
         </div>
       </div>
     );
@@ -183,190 +83,180 @@ export default function TeacherClassesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">My Classes</h1>
           <p className="text-muted-foreground">
-            Manage your classes, students, and academic activities
+            Manage and view details for all your assigned classes
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/teacher/schedule">
-              <Calendar className="mr-2 h-4 w-4" />
-              View Schedule
-            </Link>
-          </Button>
-        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Request New Class
+        </Button>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Overview Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Classes</p>
-                <p className="text-2xl font-bold">{classes.length}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{teacherClasses.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Active this semester
+            </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-2xl font-bold">{classes.reduce((sum, c) => sum + c.studentsCount, 0)}</p>
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {teacherClasses.reduce((total, cls) => total + (cls.students?.length || 0), 0)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Across all classes
+            </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Pending Work</p>
-                <p className="text-2xl font-bold">{classes.reduce((sum, c) => sum + c.pendingAssignments, 0)}</p>
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Class Size</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {teacherClasses.length > 0
+                ? Math.round(
+                    teacherClasses.reduce((total, cls) => total + (cls.students?.length || 0), 0) /
+                    teacherClasses.length
+                  )
+                : 0}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Students per class
+            </p>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Avg Attendance</p>
-                <p className="text-2xl font-bold">
-                  {Math.round(classes.reduce((sum, c) => sum + c.recentAttendance, 0) / classes.length)}%
-                </p>
-              </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Classes Today</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.floor(Math.random() * 3) + 2}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Scheduled sessions
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Classes List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Class Directory</CardTitle>
-          <CardDescription>
-            View and manage all your assigned classes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-6">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search classes..."
-                className="w-[300px] pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
+      {/* Classes Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {teacherClasses.map((classObj) => {
+          const stats = getClassStats(classObj);
+          
+          return (
+            <Card key={classObj.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{classObj.name}</CardTitle>
+                    <CardDescription>
+                      {classObj.subjects} • Grade {classObj.grade}
+                    </CardDescription>
+                  </div>
+                  <Badge variant={getCapacityBadgeVariant(stats.capacityPercentage)}>
+                    {stats.capacityPercentage}% Full
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Enrollment */}
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>Enrollment</span>
+                  </div>
+                  <span className="font-medium">
+                    {stats.currentEnrollment}/{stats.maxCapacity}
+                  </span>
+                </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Students</TableHead>
-                  <TableHead>Next Class</TableHead>
-                  <TableHead>Attendance</TableHead>
-                  <TableHead>Avg Grade</TableHead>
-                  <TableHead>Pending Work</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClasses.map((classInfo) => (
-                  <TableRow key={classInfo.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{classInfo.name}</div>
-                        <div className="text-sm text-muted-foreground">Grade {classInfo.grade}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{classInfo.subject}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1" />
-                        {classInfo.studentsCount}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {classInfo.nextClass ? (
-                        <div className="text-sm">
-                          <div className="font-medium">{classInfo.nextClass.day}</div>
-                          <div className="text-muted-foreground">
-                            {classInfo.nextClass.time} • {classInfo.nextClass.room}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">No upcoming class</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getAttendanceColor(classInfo.recentAttendance)}>
-                        {classInfo.recentAttendance}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getGradeColor(classInfo.avgGrade)}>
-                        {classInfo.avgGrade}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {classInfo.pendingAssignments > 0 ? (
-                        <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
-                          {classInfo.pendingAssignments} pending
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                          All caught up
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/teacher/classes/${classInfo.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/teacher/attendance?class=${classInfo.id}`}>
-                            <ClipboardList className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/teacher/grades?class=${classInfo.id}`}>
-                            <GraduationCap className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full" 
+                    style={{ width: `${stats.capacityPercentage}%` }}
+                  ></div>
+                </div>
 
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredClasses.length} of {classes.length} classes
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Avg Grade</div>
+                    <div className="font-medium text-green-600">{stats.avgGrade}%</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Attendance</div>
+                    <div className="font-medium text-blue-600">{stats.attendanceRate}%</div>
+                  </div>
+                </div>
+
+                {/* Schedule Info */}
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4 mr-2" />
+                  <span>
+                    {typeof classObj.schedule === 'string' 
+                      ? classObj.schedule 
+                      : 'Mon, Wed, Fri 10:00 AM'}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-2">
+                  <Button asChild size="sm" className="flex-1">
+                    <Link href={`/teacher/classes/${classObj.id}`}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Quick Actions
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {teacherClasses.length === 0 && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Classes Assigned</h3>
+            <p className="text-muted-foreground mb-4">
+              You don't have any classes assigned yet. Contact the administration to get started.
+            </p>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Request Class Assignment
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

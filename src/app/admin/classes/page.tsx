@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/contexts/store-context';
 import { useToast } from '@/components/ui/use-toast';
 import { Class } from '@/lib/database-services';
@@ -13,6 +14,7 @@ import { ClassFormDialog } from '@/components/classes/class-form-dialog';
 import { formatDate } from '@/lib/form-utils';
 
 export default function ClassesPage() {
+  const router = useRouter();
   const { 
     state, 
     loadClasses,
@@ -250,12 +252,9 @@ export default function ClassesPage() {
     setIsFormOpen(true);
   };
 
-  // Handle view class (placeholder for future implementation)
+  // Handle view class
   const handleView = (classItem: Class) => {
-    toast({
-      title: "View Class",
-      description: `Viewing ${classItem.name} - Feature coming soon!`,
-    });
+    router.push(`/admin/classes/${classItem.id}`);
   };
 
   // Action buttons for each row

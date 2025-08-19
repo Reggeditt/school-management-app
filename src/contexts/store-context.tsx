@@ -808,7 +808,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { key: 'dashboard', value: true } });
       const schoolId = getSchoolId();
@@ -821,20 +821,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         loadSubjects(),
       ]);
       
-      // Calculate attendance rate
+      // Calculate attendance rate (will be recalculated when students data loads)
       const todayAttendance = await DatabaseService.getAttendance(schoolId, new Date());
-      const totalStudents = state.students.length;
-      const presentStudents = todayAttendance.filter((att: Attendance) => att.status === 'present').length;
-      const attendanceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0;
+      // Note: We'll calculate attendance rate in a separate effect when students data changes
       
-      dispatch({ type: 'SET_STATS', payload: { attendanceRate } });
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       dispatch({ type: 'SET_ERROR', payload: { key: 'dashboard', error: error.message } });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { key: 'dashboard', value: false } });
     }
-  };
+  }, [loadStudents, loadTeachers, loadClasses, loadSubjects]);
 
   const setFilters = (filters: Partial<StoreState['filters']>) => {
     dispatch({ type: 'SET_FILTERS', payload: filters });
@@ -912,7 +909,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (user?.profile?.schoolId) {
       loadDashboardData();
     }
-  }, [user?.profile?.schoolId]);
+  }, [user?.profile?.schoolId, loadDashboardData]);
+
+  // Calculate attendance rate when students data changes
+  useEffect(() => {
+    const calculateAttendanceRate = async () => {
+      if (state.students.length > 0 && user?.profile?.schoolId) {
+        try {
+          const schoolId = getSchoolId();
+          const todayAttendance = await DatabaseService.getAttendance(schoolId, new Date());
+          const totalStudents = state.students.length;
+          const presentStudents = todayAttendance.filter((att: Attendance) => att.status === 'present').length;
+          const attendanceRate = totalStudents > 0 ? (presentStudents / totalStudents) * 100 : 0;
+          
+          dispatch({ type: 'SET_STATS', payload: { attendanceRate } });
+        } catch (error: any) {
+          console.error('Error calculating attendance rate:', error);
+        }
+      }
+    };
+
+    calculateAttendanceRate();
+  }, [state.students.length, user?.profile?.schoolId]);
 
   const value: StoreContextType = {
     state,

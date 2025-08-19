@@ -851,6 +851,81 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  static async getAllUsers(schoolId?: string): Promise<User[]> {
+    try {
+      let q = collection(db, 'users');
+      
+      if (schoolId) {
+        q = query(collection(db, 'users'), where('schoolId', '==', schoolId));
+      }
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as User);
+    } catch (error) {
+      console.error('Error getting users:', error);
+      throw error;
+    }
+  }
+
+  static async updateUser(userId: string, updates: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const data = prepareDocumentForFirestore({
+        ...updates,
+        updatedAt: new Date(),
+      });
+      
+      await updateDoc(userRef, data);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  static async deleteUser(userId: string): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await deleteDoc(userRef);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
+  static async getUsersByRole(role: string, schoolId?: string): Promise<User[]> {
+    try {
+      let q = query(collection(db, 'users'), where('role', '==', role));
+      
+      if (schoolId) {
+        q = query(collection(db, 'users'), where('role', '==', role), where('schoolId', '==', schoolId));
+      }
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => processDocumentFromFirestore(doc) as User);
+    } catch (error) {
+      console.error('Error getting users by role:', error);
+      throw error;
+    }
+  }
+
+  static async toggleUserStatus(userId: string): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        await updateDoc(userRef, {
+          isActive: !userData.isActive,
+          updatedAt: Timestamp.fromDate(new Date())
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      throw error;
+    }
+  }
   
   // ==================== BATCH OPERATIONS ====================
   

@@ -56,6 +56,13 @@ const navigationConfigs: Record<PortalType, NavigationItem[]> = {
       description: 'Manage teaching staff'
     },
     {
+      id: 'users',
+      label: 'Users',
+      href: '/admin/users',
+      icon: 'user-cog',
+      description: 'Manage app users and roles'
+    },
+    {
       id: 'classes',
       label: 'Classes',
       href: '/admin/classes',
@@ -68,6 +75,13 @@ const navigationConfigs: Record<PortalType, NavigationItem[]> = {
       href: '/admin/subjects',
       icon: 'book-open',
       description: 'Manage curriculum subjects'
+    },
+    {
+      id: 'timetable',
+      label: 'Timetable',
+      href: '/admin/timetable',
+      icon: 'calendar',
+      description: 'Create and manage academic timetables'
     },
     {
       id: 'attendance',

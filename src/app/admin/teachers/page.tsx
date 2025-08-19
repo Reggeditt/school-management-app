@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/contexts/store-context';
 import { useToast } from '@/components/ui/use-toast';
 import { Teacher } from '@/lib/database-services';
@@ -12,6 +13,7 @@ import { TeacherFormDialog } from '@/components/teachers/teacher-form-dialog';
 import { formatDate, getStatusColor } from '@/lib/form-utils';
 
 export default function TeachersPage() {
+  const router = useRouter();
   const { 
     state, 
     loadTeachers,
@@ -226,12 +228,9 @@ export default function TeachersPage() {
     setIsFormOpen(true);
   };
 
-  // Handle view teacher (placeholder for future implementation)
+  // Handle view teacher
   const handleView = (teacher: Teacher) => {
-    toast({
-      title: "View Teacher",
-      description: `Viewing ${teacher.firstName} ${teacher.lastName} - Feature coming soon!`,
-    });
+    router.push(`/admin/teachers/${teacher.id}`);
   };
 
   // Action buttons for each row

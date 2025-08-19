@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/contexts/store-context';
 import { useToast } from '@/components/ui/use-toast';
 import { Student } from '@/lib/database-services';
@@ -11,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 export default function StudentsPage() {
+  const router = useRouter();
   const { 
     state, 
     loadStudents, 
@@ -49,6 +51,11 @@ export default function StudentsPage() {
       age--;
     }
     return age;
+  };
+
+  // Handle viewing student details
+  const handleView = (student: Student) => {
+    router.push(`/admin/students/${student.id}`);
   };
 
   // Table columns configuration
@@ -130,9 +137,16 @@ export default function StudentsPage() {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      width: '120px',
+      width: '180px',
       render: (value: any, student: Student) => (
         <div className="flex gap-1">
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={() => handleView(student)}
+          >
+            View
+          </Button>
           <Button 
             size="sm" 
             variant="outline"

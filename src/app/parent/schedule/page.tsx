@@ -627,7 +627,7 @@ export default function SchedulePage() {
                       .map(event => (
                         <div key={event.id} className="p-2 border rounded text-sm">
                           <div className="font-medium">{event.title}</div>
-                          <Badge className={getEventTypeColor(event.type)} size="sm">
+                          <Badge className={getEventTypeColor(event.type)}>
                             {event.type}
                           </Badge>
                         </div>

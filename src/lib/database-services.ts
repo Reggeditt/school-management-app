@@ -301,6 +301,24 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  static async updateSchool(id: string, updateData: Partial<Omit<School, 'id' | 'createdAt'>>): Promise<School> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...updateData,
+        updatedAt: new Date(),
+      });
+      
+      const docRef = doc(db, 'schools', id);
+      await updateDoc(docRef, data);
+      
+      const updatedDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(updatedDoc) as School;
+    } catch (error) {
+      console.error('Error updating school:', error);
+      throw error;
+    }
+  }
   
   // ==================== STUDENT METHODS ====================
   
@@ -671,6 +689,51 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  static async createAttendance(attendanceData: Omit<Attendance, 'id' | 'createdAt' | 'updatedAt'>): Promise<Attendance> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...attendanceData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      
+      const docRef = await addDoc(collection(db, 'attendance'), data);
+      const newDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(newDoc) as Attendance;
+    } catch (error) {
+      console.error('Error creating attendance:', error);
+      throw error;
+    }
+  }
+
+  static async updateAttendance(id: string, updateData: Partial<Omit<Attendance, 'id' | 'createdAt'>>): Promise<Attendance> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...updateData,
+        updatedAt: new Date(),
+      });
+      
+      const docRef = doc(db, 'attendance', id);
+      await updateDoc(docRef, data);
+      
+      const updatedDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(updatedDoc) as Attendance;
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      throw error;
+    }
+  }
+
+  static async deleteAttendance(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, 'attendance', id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting attendance:', error);
+      throw error;
+    }
+  }
   
   // ==================== EXAM METHODS ====================
   
@@ -706,6 +769,34 @@ export class DatabaseService {
       return docRef.id;
     } catch (error) {
       console.error('Error creating exam:', error);
+      throw error;
+    }
+  }
+
+  static async updateExam(id: string, updateData: Partial<Omit<Exam, 'id' | 'createdAt'>>): Promise<Exam> {
+    try {
+      const data = prepareDocumentForFirestore({
+        ...updateData,
+        updatedAt: new Date(),
+      });
+      
+      const docRef = doc(db, 'exams', id);
+      await updateDoc(docRef, data);
+      
+      const updatedDoc = await getDoc(docRef);
+      return processDocumentFromFirestore(updatedDoc) as Exam;
+    } catch (error) {
+      console.error('Error updating exam:', error);
+      throw error;
+    }
+  }
+
+  static async deleteExam(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, 'exams', id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting exam:', error);
       throw error;
     }
   }

@@ -498,7 +498,7 @@ export default function ReportsPage() {
                         </div>
                         <div>
                           <span className="text-muted-foreground">Behavior:</span>
-                          <Badge className={getBehaviorColor(report.behavior)} size="sm">
+                          <Badge className={getBehaviorColor(report.behavior)}>
                             {report.behavior.replace('_', ' ')}
                           </Badge>
                         </div>

@@ -447,7 +447,7 @@ export default function HRDashboard() {
                       <p className="font-medium text-sm">{activity.description}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{activity.staffName}</span>
-                        <Badge className={getStatusColor(activity.status)} size="sm">
+                        <Badge className={getStatusColor(activity.status)}>
                           {activity.status.replace('_', ' ')}
                         </Badge>
                       </div>

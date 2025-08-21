@@ -1,104 +1,64 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
+import { useTeacherData } from "@/hooks/teacher";
+import { AssignmentsList, Assignment } from "@/components/teacher/assignments-list";
+import { AssignmentService } from "@/services/assignment.service";
+import Link from "next/link";
+import {
+  Plus,
+  Search,
+  Filter,
+  FileText,
+  BookOpen,
+  Clock,
+  Users,
+  TrendingUp,
+  AlertTriangle
+} from "lucide-react";
 
-interface Assignment {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  class: string;
-  dueDate: Date;
-  assignedDate: Date;
-  totalPoints: number;
-  status: 'draft' | 'published' | 'overdue' | 'completed';
-  submissionCount: number;
-  totalStudents: number;
-  type: 'homework' | 'project' | 'quiz' | 'exam';
-}
-
-export default function TeacherAssignments() {
+export default function TeacherAssignmentsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const { classes: teacherClasses, loading: dataLoading } = useTeacherData();
+  
   const [loading, setLoading] = useState(true);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterClass, setFilterClass] = useState("all");
+  const [assignmentStats, setAssignmentStats] = useState({
+    total: 0,
+    draft: 0,
+    published: 0,
+    closed: 0,
+    overdue: 0,
+    pendingGrading: 0
+  });
+
+  // Get school ID and teacher ID
+  const schoolId = user?.profile?.schoolId || 'default-school-id';
+  const teacherId = user?.uid || '';
 
   useEffect(() => {
-    loadAssignments();
-  }, []);
+    if (teacherId && schoolId) {
+      loadAssignments();
+      loadAssignmentStats();
+    }
+  }, [teacherId, schoolId]);
 
   const loadAssignments = async () => {
     try {
       setLoading(true);
-      
-      // Mock data - replace with actual API call
-      const mockAssignments: Assignment[] = [
-        {
-          id: '1',
-          title: 'Algebra Chapter 5 Homework',
-          description: 'Complete exercises 1-20 from Chapter 5: Linear Equations',
-          subject: 'Mathematics',
-          class: 'Grade 9A',
-          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          totalPoints: 100,
-          status: 'published',
-          submissionCount: 18,
-          totalStudents: 25,
-          type: 'homework'
-        },
-        {
-          id: '2',
-          title: 'Science Fair Project',
-          description: 'Design and conduct an experiment related to chemical reactions',
-          subject: 'Chemistry',
-          class: 'Grade 10B',
-          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          totalPoints: 200,
-          status: 'published',
-          submissionCount: 12,
-          totalStudents: 22,
-          type: 'project'
-        },
-        {
-          id: '3',
-          title: 'Physics Quiz - Motion',
-          description: 'Quiz covering velocity, acceleration, and displacement',
-          subject: 'Physics',
-          class: 'Grade 11A',
-          dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-          totalPoints: 50,
-          status: 'overdue',
-          submissionCount: 19,
-          totalStudents: 20,
-          type: 'quiz'
-        },
-        {
-          id: '4',
-          title: 'Essay: Modern Literature',
-          description: 'Write a 1000-word essay analyzing themes in contemporary literature',
-          subject: 'English',
-          class: 'Grade 12A',
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          assignedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          totalPoints: 150,
-          status: 'published',
-          submissionCount: 8,
-          totalStudents: 18,
-          type: 'homework'
-        }
-      ];
-
-      setAssignments(mockAssignments);
+      const fetchedAssignments = await AssignmentService.getTeacherAssignments(teacherId, schoolId);
+      setAssignments(fetchedAssignments);
     } catch (error) {
       toast({
         title: "Error",
@@ -110,165 +70,206 @@ export default function TeacherAssignments() {
     }
   };
 
-  const filteredAssignments = assignments.filter(assignment => 
-    assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    assignment.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    assignment.class.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-      case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
-      case 'overdue': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
-      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
+  const loadAssignmentStats = async () => {
+    try {
+      const stats = await AssignmentService.getAssignmentStats(teacherId, schoolId);
+      setAssignmentStats(stats);
+    } catch (error) {
+      console.error('Error loading assignment stats:', error);
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'homework': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      case 'project': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
-      case 'quiz': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
-      case 'exam': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
-    }
-  };
+  // Filter assignments based on search and filters
+  const filteredAssignments = assignments.filter(assignment => {
+    const matchesSearch = assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         assignment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         assignment.subject.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || assignment.status === filterStatus;
+    const matchesClass = filterClass === 'all' || assignment.classId === filterClass;
+    
+    return matchesSearch && matchesStatus && matchesClass;
+  });
 
-  const handleCreateAssignment = () => {
+  // Handle assignment actions
+  const handleEditAssignment = (assignment: Assignment) => {
+    // In a real app, this would open an edit modal or navigate to edit page
     toast({
-      title: "Feature Coming Soon",
-      description: "Assignment creation will be available soon",
+      title: "Edit Assignment",
+      description: `Editing ${assignment.title}`,
     });
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const handleDeleteAssignment = async (assignmentId: string) => {
+    try {
+      await AssignmentService.deleteAssignment(assignmentId);
+      setAssignments(prev => prev.filter(a => a.id !== assignmentId));
+      toast({
+        title: "Success",
+        description: "Assignment deleted successfully",
+      });
+      loadAssignmentStats(); // Refresh stats
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete assignment",
+        variant: "destructive",
+      });
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Assignments</h1>
-        </div>
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-gray-300 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-3/4"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const handleViewSubmissions = (assignmentId: string) => {
+    // In a real app, this would navigate to submissions page
+    toast({
+      title: "View Submissions",
+      description: `Viewing submissions for assignment ${assignmentId}`,
+    });
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Assignments</h1>
-          <p className="text-muted-foreground">
-            Manage and track assignments for your classes
+          <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
+          <p className="text-gray-600 mt-1">
+            Create and manage assignments for your classes
           </p>
         </div>
-        <Button onClick={handleCreateAssignment}>
-          + Create Assignment
-        </Button>
-      </div>
-
-      {/* Search */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search assignments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={loadAssignments}>
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            New Assignment
+          </Button>
         </div>
       </div>
 
-      {/* Assignments Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredAssignments.map((assignment) => (
-          <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{assignment.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {assignment.description}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Badge className={getStatusColor(assignment.status)}>
-                  {assignment.status}
-                </Badge>
-                <Badge variant="outline" className={getTypeColor(assignment.type)}>
-                  {assignment.type}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span>📚 {assignment.subject} - {assignment.class}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>📅 Due: {formatDate(assignment.dueDate)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>👥 {assignment.submissionCount}/{assignment.totalStudents} submitted</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>⏱️ {assignment.totalPoints} points</span>
-                </div>
-              </div>
-
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                <div 
-                  className="bg-primary h-2 rounded-full" 
-                  style={{ width: `${(assignment.submissionCount / assignment.totalStudents) * 100}%` }}
-                ></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredAssignments.length === 0 && (
+      {/* Stats Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              {searchTerm 
-                ? "Try adjusting your search terms."
-                : "Get started by creating your first assignment."}
-            </p>
-            {!searchTerm && (
-              <Button onClick={handleCreateAssignment}>
-                + Create Assignment
-              </Button>
-            )}
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignmentStats.total}</div>
           </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignmentStats.draft}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignmentStats.published}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Closed</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignmentStats.closed}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{assignmentStats.overdue}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">To Grade</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{assignmentStats.pendingGrading}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Assignments Overview</CardTitle>
+              <CardDescription>
+                {filteredAssignments.length} of {assignments.length} assignments
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search assignments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="closed">Closed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterClass} onValueChange={setFilterClass}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  {teacherClasses.map(cls => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Assignments List */}
+          <AssignmentsList
+            assignments={filteredAssignments}
+            loading={loading || dataLoading}
+            onEdit={handleEditAssignment}
+            onDelete={handleDeleteAssignment}
+            onViewSubmissions={handleViewSubmissions}
+            emptyMessage="No assignments found. Create your first assignment to get started."
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

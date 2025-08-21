@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -440,16 +441,21 @@ export class DatabaseService {
     }
   }
   
-  static async createTeacher(teacherData: Omit<Teacher, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  // Updated to use Firebase Auth UID as document ID
+  static async createTeacher(teacherData: Omit<Teacher, 'id' | 'createdAt' | 'updatedAt'>, firebaseUID: string): Promise<string> {
     try {
       const data = prepareDocumentForFirestore({
         ...teacherData,
+        id: firebaseUID,
+        userId: firebaseUID,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
       
-      const docRef = await addDoc(collection(db, 'teachers'), data);
-      return docRef.id;
+      // Use setDoc with Firebase UID as document ID instead of addDoc
+      const docRef = doc(db, 'teachers', firebaseUID);
+      await setDoc(docRef, data);
+      return firebaseUID;
     } catch (error) {
       console.error('Error creating teacher:', error);
       throw error;

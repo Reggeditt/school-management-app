@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/contexts/store-context';
 import { useToast } from '@/components/ui/use-toast';
 import { Teacher } from '@/lib/database-services';
+import { TeacherAccountService, CreateTeacherAccountData } from '@/lib/services/teacher-account-service';
 import { DataTable, Column } from '@/components/ui/data-table';
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -165,21 +166,43 @@ export default function TeachersPage() {
   ];
 
   // Handle form submission
-  const handleFormSubmit = async (teacherData: Partial<Teacher>): Promise<boolean> => {
+  const handleFormSubmit = async (teacherData: Partial<Teacher> & { email?: string; password?: string }): Promise<boolean> => {
     try {
       if (selectedTeacher) {
-        // Update existing teacher
-        await updateTeacher(selectedTeacher.id, teacherData);
+        // Update existing teacher (no auth changes allowed)
+        const { email, password, ...updateData } = teacherData;
+        await updateTeacher(selectedTeacher.id, updateData);
         toast({
           title: "Success",
           description: "Teacher updated successfully",
         });
       } else {
-        // Add new teacher
-        await addTeacher(teacherData as Omit<Teacher, 'id' | 'createdAt' | 'updatedAt'>);
+        // Add new teacher with authentication
+        if (!teacherData.email || !teacherData.password) {
+          toast({
+            title: "Error",
+            description: "Email and password are required for new teachers",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        // Use TeacherAccountService to create complete teacher account
+        const { email, password, ...teacherInfo } = teacherData;
+        const accountData = {
+          email,
+          password,
+          ...teacherInfo
+        } as CreateTeacherAccountData;
+        
+        await TeacherAccountService.createTeacherAccount(accountData);
+        
+        // Reload teachers to show the new one
+        await loadTeachers();
+        
         toast({
           title: "Success", 
-          description: "Teacher added successfully",
+          description: "Teacher account created successfully with login credentials",
         });
       }
       return true;
@@ -187,7 +210,7 @@ export default function TeachersPage() {
       console.error('Error saving teacher:', error);
       toast({
         title: "Error",
-        description: "Failed to save teacher. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save teacher. Please try again.",
         variant: "destructive",
       });
       return false;

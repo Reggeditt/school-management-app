@@ -503,14 +503,13 @@ export class DemoDataSeeder {
       const teacherUserIds: string[] = [];
       for (const teacher of this.DEMO_TEACHERS) {
         const userId = userIdMap[teacher.email];
-        const id = await DatabaseService.createTeacher({ 
-          ...teacher, 
-          schoolId,
-          userId, // Link to Firebase Auth UID
-          subjects: subjectIds.slice(0, 2), // Assign first 2 subjects to each teacher
-        });
-        // Store the Firebase Auth UID for class assignment
         if (userId) {
+          const id = await DatabaseService.createTeacher({ 
+            ...teacher, 
+            schoolId,
+            subjects: subjectIds.slice(0, 2), // Assign first 2 subjects to each teacher
+          }, userId); // Pass Firebase UID as second parameter
+          // Store the Firebase Auth UID for class assignment
           teacherUserIds.push(userId);
         }
       }

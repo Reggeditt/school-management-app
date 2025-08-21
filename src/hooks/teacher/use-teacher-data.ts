@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useStore } from '@/contexts/store-context';
 import { TeacherService } from '@/lib/services/teacher-service';
@@ -77,18 +77,18 @@ export function useTeacherData() {
     }
   }, [user, teacherId, schoolId]); // Fixed: consistent dependency array
 
-  const getStudentsForClass = (classId: string): Student[] => {
+  const getStudentsForClass = useCallback((classId: string): Student[] => {
     const selectedClass = teacherClasses.find(cls => cls.id === classId);
     if (!selectedClass) return [];
     
     return teacherStudents.filter(student => 
       selectedClass.students?.includes(student.id)
     );
-  };
+  }, [teacherClasses, teacherStudents]);
 
-  const getClassById = (classId: string): Class | undefined => {
+  const getClassById = useCallback((classId: string): Class | undefined => {
     return teacherClasses.find(cls => cls.id === classId);
-  };
+  }, [teacherClasses]);
 
   return {
     teacherClasses,

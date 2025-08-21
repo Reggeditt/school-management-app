@@ -2,7 +2,9 @@
 
 import { Teacher } from '@/lib/database-services';
 import { FormField, FormDialog } from '@/components/ui/form-dialog';
-import { TeacherFormData, validateTeacherForm, generateTeacherId } from '@/lib/form-utils';
+import { TeacherFormData, validateTeacherForm } from '@/lib/form-utils';
+import { TeacherAccountService, CreateTeacherAccountData } from '@/lib/services/teacher-account-service';
+import { useAuth } from '@/contexts/auth-context';
 
 interface TeacherFormDialogProps {
   open: boolean;
@@ -20,46 +22,66 @@ export function TeacherFormDialog({
   onSubmit 
 }: TeacherFormDialogProps) {
   const isEditing = !!teacher;
+  const { user } = useAuth();
+  const schoolId = user?.profile?.schoolId || '';
 
   const formFields: FormField[] = [
+    // Authentication Section (only for new teachers)
+    ...(isEditing ? [] : [
+      {
+        name: 'email',
+        label: 'Login Email Address *',
+        type: 'email' as const,
+        required: true,
+        placeholder: 'e.g., j.doe@stmarysschool.edu.ng'
+      },
+      {
+        name: 'password',
+        label: 'Initial Password *',
+        type: 'text' as const, // Using text instead of password for now
+        required: true,
+        placeholder: 'Enter a secure password (min 8 characters)'
+      }
+    ]),
+    // For editing, email is shown but cannot be changed
+    ...(isEditing ? [{
+      name: 'email',
+      label: 'Email Address (Cannot be changed)',
+      type: 'email' as const,
+      required: true,
+      placeholder: 'Email address'
+    }] : []),
     {
       name: 'firstName',
-      label: 'First Name',
-      type: 'text',
+      label: 'First Name *',
+      type: 'text' as const,
       required: true,
       placeholder: 'Enter first name'
     },
     {
       name: 'lastName',
-      label: 'Last Name',
-      type: 'text',
+      label: 'Last Name *',
+      type: 'text' as const,
       required: true,
       placeholder: 'Enter last name'
     },
     {
-      name: 'email',
-      label: 'Email Address',
-      type: 'email',
-      required: true,
-      placeholder: 'Enter email address'
-    },
-    {
       name: 'phone',
-      label: 'Phone Number',
-      type: 'tel',
+      label: 'Phone Number *',
+      type: 'tel' as const,
       required: true,
       placeholder: 'Enter phone number'
     },
     {
       name: 'dateOfBirth',
-      label: 'Date of Birth',
-      type: 'date',
+      label: 'Date of Birth *',
+      type: 'date' as const,
       required: true
     },
     {
       name: 'gender',
-      label: 'Gender',
-      type: 'select',
+      label: 'Gender *',
+      type: 'select' as const,
       required: true,
       options: [
         { label: 'Male', value: 'male' },
@@ -70,27 +92,27 @@ export function TeacherFormDialog({
     {
       name: 'address',
       label: 'Address',
-      type: 'textarea',
+      type: 'textarea' as const,
       placeholder: 'Enter home address'
     },
     {
       name: 'qualification',
-      label: 'Highest Qualification',
-      type: 'text',
+      label: 'Highest Qualification *',
+      type: 'text' as const,
       required: true,
       placeholder: 'e.g., B.Ed, M.Sc, Ph.D'
     },
     {
       name: 'experience',
-      label: 'Years of Experience',
-      type: 'number',
+      label: 'Years of Experience *',
+      type: 'number' as const,
       required: true,
       placeholder: 'Enter years of experience'
     },
     {
       name: 'department',
-      label: 'Department',
-      type: 'select',
+      label: 'Department *',
+      type: 'select' as const,
       required: true,
       options: [
         { label: 'Mathematics', value: 'Mathematics' },
@@ -105,8 +127,8 @@ export function TeacherFormDialog({
     },
     {
       name: 'designation',
-      label: 'Designation',
-      type: 'select',
+      label: 'Designation *',
+      type: 'select' as const,
       required: true,
       options: [
         { label: 'Head Teacher', value: 'Head Teacher' },
@@ -117,45 +139,115 @@ export function TeacherFormDialog({
       ]
     },
     {
+      name: 'joiningDate',
+      label: 'Joining Date *',
+      type: 'date' as const,
+      required: true
+    },
+    {
       name: 'salary',
-      label: 'Monthly Salary',
-      type: 'number',
+      label: 'Monthly Salary *',
+      type: 'number' as const,
       required: true,
       placeholder: 'Enter monthly salary amount'
     },
     {
       name: 'emergencyContact',
-      label: 'Emergency Contact Name',
-      type: 'text',
+      label: 'Emergency Contact Name *',
+      type: 'text' as const,
+      required: true,
       placeholder: 'Enter emergency contact name'
     },
     {
       name: 'emergencyPhone',
-      label: 'Emergency Contact Phone',
-      type: 'tel',
+      label: 'Emergency Contact Phone *',
+      type: 'tel' as const,
+      required: true,
       placeholder: 'Enter emergency contact phone'
+    },
+    {
+      name: 'bloodGroup',
+      label: 'Blood Group',
+      type: 'select' as const,
+      options: [
+        { label: 'A+', value: 'A+' },
+        { label: 'A-', value: 'A-' },
+        { label: 'B+', value: 'B+' },
+        { label: 'B-', value: 'B-' },
+        { label: 'AB+', value: 'AB+' },
+        { label: 'AB-', value: 'AB-' },
+        { label: 'O+', value: 'O+' },
+        { label: 'O-', value: 'O-' }
+      ]
+    },
+    {
+      name: 'bankAccount',
+      label: 'Bank Account Number',
+      type: 'text' as const,
+      placeholder: 'Enter bank account number'
+    },
+    {
+      name: 'panNumber',
+      label: 'PAN Number',
+      type: 'text' as const,
+      placeholder: 'Enter PAN number'
+    },
+    {
+      name: 'aadharNumber',
+      label: 'Aadhar Number',
+      type: 'text' as const,
+      placeholder: 'Enter Aadhar number'
     }
   ];
 
   const handleSubmit = async (formData: Record<string, any>): Promise<boolean> => {
-    // Validate form data
-    const errors = validateTeacherForm(formData as TeacherFormData);
-    if (Object.keys(errors).length > 0) {
+    try {
+      if (isEditing) {
+        // Update existing teacher (no Firebase Auth changes)
+        const teacherData: Partial<Teacher> = {
+          ...formData,
+          dateOfBirth: new Date(formData.dateOfBirth),
+          joiningDate: new Date(formData.joiningDate)
+        };
+        return await onSubmit(teacherData);
+      } else {
+        // Create new teacher account with Firebase Auth
+        const createData: CreateTeacherAccountData = {
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          dateOfBirth: new Date(formData.dateOfBirth),
+          gender: formData.gender,
+          address: formData.address || '',
+          qualification: formData.qualification,
+          experience: parseInt(formData.experience) || 0,
+          department: formData.department,
+          designation: formData.designation,
+          joiningDate: new Date(formData.joiningDate),
+          salary: parseFloat(formData.salary) || 0,
+          emergencyContact: formData.emergencyContact,
+          emergencyPhone: formData.emergencyPhone,
+          bloodGroup: formData.bloodGroup,
+          bankAccount: formData.bankAccount,
+          panNumber: formData.panNumber,
+          aadharNumber: formData.aadharNumber,
+          schoolId: schoolId
+        };
+
+        // Use the new service to create complete teacher account
+        const result = await TeacherAccountService.createTeacherAccount(createData);
+        
+        console.log('✅ Teacher account created:', result);
+        
+        // Return success (the service handles all creation logic)
+        return true;
+      }
+    } catch (error) {
+      console.error('Error in form submission:', error);
       return false;
     }
-
-    // Prepare teacher data
-    const teacherData: Partial<Teacher> = {
-      ...formData,
-      dateOfBirth: new Date(formData.dateOfBirth),
-      joiningDate: teacher?.joiningDate || new Date(),
-      teacherId: teacher?.teacherId || generateTeacherId(existingTeachers),
-      status: teacher?.status || 'active',
-      subjects: teacher?.subjects || [],
-      classes: teacher?.classes || []
-    };
-
-    return await onSubmit(teacherData);
   };
 
   // Prepare initial data for editing
@@ -171,9 +263,14 @@ export function TeacherFormDialog({
     experience: teacher.experience,
     department: teacher.department,
     designation: teacher.designation,
+    joiningDate: teacher.joiningDate.toISOString().split('T')[0],
     salary: teacher.salary,
     emergencyContact: teacher.emergencyContact,
-    emergencyPhone: teacher.emergencyPhone
+    emergencyPhone: teacher.emergencyPhone,
+    bloodGroup: teacher.bloodGroup,
+    bankAccount: teacher.bankAccount,
+    panNumber: teacher.panNumber,
+    aadharNumber: teacher.aadharNumber
   } : {};
 
   return (
@@ -181,11 +278,11 @@ export function TeacherFormDialog({
       open={open}
       onClose={onClose}
       title={isEditing ? 'Edit Teacher' : 'Add New Teacher'}
-      description={isEditing ? 'Update teacher information' : 'Enter teacher details to create a new record'}
+      description={isEditing ? 'Update teacher information' : 'Create a new teacher account with login credentials'}
       fields={formFields}
       initialData={initialData}
       onSubmit={handleSubmit}
-      submitText={isEditing ? 'Update Teacher' : 'Add Teacher'}
+      submitText={isEditing ? 'Update Teacher' : 'Create Teacher Account'}
     />
   );
 }

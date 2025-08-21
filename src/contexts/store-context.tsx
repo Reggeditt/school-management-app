@@ -567,8 +567,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const addTeacher = async (teacherData: Omit<Teacher, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
+      if (!user?.uid) {
+        throw new Error('User not authenticated');
+      }
+      
       const schoolId = getSchoolId();
-      const id = await DatabaseService.createTeacher({ ...teacherData, schoolId });
+      const id = await DatabaseService.createTeacher({ ...teacherData, schoolId }, user.uid);
       const newTeacher = await DatabaseService.getTeacherById(id);
       
       if (newTeacher) {

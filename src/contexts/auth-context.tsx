@@ -23,6 +23,8 @@ export interface AppUser extends User {
     grade?: string;
     section?: string;
   };
+  schoolId?: string;
+  uid: string;
 }
 
 interface AuthContextType {
@@ -64,7 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const appUser = {
               ...firebaseUser,
               role: userData.role as UserRole,
-              profile: userData.profile
+              profile: userData.profile,
+              uid: firebaseUser.uid,
             } as AppUser;
             
             setUser(appUser);

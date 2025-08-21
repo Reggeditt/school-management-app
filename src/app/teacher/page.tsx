@@ -19,7 +19,13 @@ import {
   CheckCircle,
   TrendingUp,
   MessageSquare,
-  Bell
+  Bell,
+  Plus,
+  Eye,
+  BarChart3,
+  Award,
+  Target,
+  Zap
 } from "lucide-react";
 
 interface TeacherStats {
@@ -29,15 +35,18 @@ interface TeacherStats {
   gradedAssignments: number;
   todayAttendance: number;
   upcomingClasses: number;
+  averageGrade: number;
+  attendanceRate: number;
 }
 
 interface RecentActivity {
   id: string;
-  type: 'assignment' | 'grade' | 'attendance' | 'message';
+  type: 'assignment' | 'grade' | 'attendance' | 'message' | 'announcement';
   title: string;
   description: string;
   timestamp: Date;
-  status?: 'pending' | 'completed' | 'overdue';
+  status?: 'pending' | 'completed' | 'overdue' | 'new';
+  priority?: 'low' | 'medium' | 'high';
 }
 
 interface UpcomingClass {
@@ -47,20 +56,14 @@ interface UpcomingClass {
   time: string;
   room: string;
   studentsCount: number;
+  status: 'upcoming' | 'current' | 'completed';
 }
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<TeacherStats>({
-    totalClasses: 0,
-    totalStudents: 0,
-    pendingAssignments: 0,
-    gradedAssignments: 0,
-    todayAttendance: 0,
-    upcomingClasses: 0,
-  });
+  const [stats, setStats] = useState<TeacherStats | null>(null);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [upcomingClasses, setUpcomingClasses] = useState<UpcomingClass[]>([]);
 
@@ -70,86 +73,99 @@ export default function TeacherDashboard() {
 
   const loadDashboardData = async () => {
     if (!user) return;
-
+    
     try {
       setLoading(true);
       
-      // Simulate loading dashboard data
-      // In real implementation, these would be API calls
+      // Simulate API call - replace with actual data fetching
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock data for demonstration
-      setStats({
-        totalClasses: 5,
-        totalStudents: 142,
+      // Mock teacher stats
+      const mockStats: TeacherStats = {
+        totalClasses: 4,
+        totalStudents: 125,
         pendingAssignments: 8,
         gradedAssignments: 15,
         todayAttendance: 95,
         upcomingClasses: 3,
-      });
+        averageGrade: 8.2,
+        attendanceRate: 92
+      };
 
-      setRecentActivities([
+      // Mock recent activities
+      const mockActivities: RecentActivity[] = [
         {
           id: '1',
           type: 'assignment',
-          title: 'Math Quiz Submitted',
-          description: '12 new submissions from Grade 10A',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          status: 'pending'
+          title: 'New Assignment Submitted',
+          description: 'Sarah Johnson submitted Math Assignment #3',
+          timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+          status: 'new',
+          priority: 'medium'
         },
         {
           id: '2',
-          type: 'grade',
-          title: 'Science Test Graded',
-          description: 'Completed grading for Grade 9B',
-          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-          status: 'completed'
+          type: 'message',
+          title: 'Parent Message',
+          description: 'New message from Michael Smith\'s parent',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          status: 'new',
+          priority: 'high'
         },
         {
           id: '3',
           type: 'attendance',
-          title: 'Attendance Updated',
-          description: 'Morning attendance for all classes',
-          timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-          status: 'completed'
+          title: 'Attendance Marked',
+          description: 'Grade 10A attendance completed for today',
+          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+          status: 'completed',
+          priority: 'low'
         },
         {
           id: '4',
-          type: 'message',
-          title: 'Parent Message',
-          description: 'New message from Sarah Johnson\'s parent',
-          timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-          status: 'pending'
+          type: 'grade',
+          title: 'Grades Updated',
+          description: 'Science test grades published for Grade 9B',
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+          status: 'completed',
+          priority: 'medium'
         }
-      ]);
+      ];
 
-      setUpcomingClasses([
+      // Mock upcoming classes
+      const mockUpcomingClasses: UpcomingClass[] = [
         {
           id: '1',
           className: 'Grade 10A',
           subject: 'Mathematics',
-          time: '10:00 AM',
-          room: 'Room 201',
-          studentsCount: 28
+          time: '09:00 - 10:00',
+          room: 'Room 101',
+          studentsCount: 28,
+          status: 'upcoming'
         },
         {
           id: '2',
           className: 'Grade 9B',
           subject: 'Science',
-          time: '11:30 AM',
-          room: 'Lab 1',
-          studentsCount: 25
+          time: '11:00 - 12:00',
+          room: 'Lab 02',
+          studentsCount: 25,
+          status: 'upcoming'
         },
         {
           id: '3',
           className: 'Grade 10B',
           subject: 'Mathematics',
-          time: '2:00 PM',
-          room: 'Room 201',
-          studentsCount: 30
+          time: '14:00 - 15:00',
+          room: 'Room 103',
+          studentsCount: 30,
+          status: 'upcoming'
         }
-      ]);
+      ];
 
+      setStats(mockStats);
+      setRecentActivities(mockActivities);
+      setUpcomingClasses(mockUpcomingClasses);
     } catch (error) {
       toast({
         title: "Error",
@@ -163,30 +179,39 @@ export default function TeacherDashboard() {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'assignment':
-        return <FileText className="h-4 w-4" />;
-      case 'grade':
-        return <GraduationCap className="h-4 w-4" />;
-      case 'attendance':
-        return <ClipboardList className="h-4 w-4" />;
-      case 'message':
-        return <MessageSquare className="h-4 w-4" />;
-      default:
-        return <Bell className="h-4 w-4" />;
+      case 'assignment': return <FileText className="h-4 w-4" />;
+      case 'grade': return <Award className="h-4 w-4" />;
+      case 'attendance': return <ClipboardList className="h-4 w-4" />;
+      case 'message': return <MessageSquare className="h-4 w-4" />;
+      case 'announcement': return <Bell className="h-4 w-4" />;
+      default: return <AlertCircle className="h-4 w-4" />;
     }
   };
 
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+  const getActivityColor = (type: string, status?: string) => {
+    if (status === 'new') return 'text-blue-600';
+    if (status === 'overdue') return 'text-red-600';
+    
+    switch (type) {
+      case 'assignment': return 'text-purple-600';
+      case 'grade': return 'text-green-600';
+      case 'attendance': return 'text-orange-600';
+      case 'message': return 'text-blue-600';
+      case 'announcement': return 'text-yellow-600';
+      default: return 'text-gray-600';
     }
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   };
 
   if (loading) {
@@ -200,202 +225,238 @@ export default function TeacherDashboard() {
     );
   }
 
+  const teacherName = user?.profile?.name || user?.email?.split('@')[0] || 'Teacher';
+
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
+      {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.profile?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Teacher'}!</h1>
+          <h1 className="text-3xl font-bold">Welcome back, {teacherName}!</h1>
           <p className="text-muted-foreground">
-            Here&apos;s what&apos;s happening with your classes today.
+            Here's what's happening with your classes today.
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/teacher/analytics">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              View Analytics
+            </Link>
+          </Button>
           <Button asChild>
-            <Link href="/teacher/classes">
-              <Users className="mr-2 h-4 w-4" />
-              View Classes
+            <Link href="/teacher/assignments">
+              <Plus className="h-4 w-4 mr-2" />
+              New Assignment
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600" />
+              <BookOpen className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Classes</p>
-                <p className="text-2xl font-bold">{stats.totalClasses}</p>
+                <p className="text-2xl font-bold">{stats?.totalClasses}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+        
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-green-600" />
+              <Users className="h-8 w-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                <p className="text-2xl font-bold">{stats.totalStudents}</p>
+                <p className="text-2xl font-bold">{stats?.totalStudents}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+        
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <FileText className="h-8 w-8 text-orange-600" />
+              <FileText className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Pending Assignments</p>
-                <p className="text-2xl font-bold">{stats.pendingAssignments}</p>
+                <p className="text-2xl font-bold">{stats?.pendingAssignments}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+        
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <ClipboardList className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                <p className="text-2xl font-bold">{stats.todayAttendance}%</p>
+                <p className="text-sm font-medium text-muted-foreground">Today's Attendance</p>
+                <p className="text-2xl font-bold">{stats?.todayAttendance}%</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upcoming Classes */}
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5" />
-              Today&apos;s Classes
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Today's Schedule
             </CardTitle>
-            <CardDescription>
-              Your upcoming classes for today
-            </CardDescription>
+            <CardDescription>Your upcoming classes for today</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {upcomingClasses.map((classItem) => (
-                <div key={classItem.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{classItem.subject}</h4>
-                      <Badge variant="outline">{classItem.className}</Badge>
+                <div key={classItem.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <GraduationCap className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      <span className="flex items-center">
-                        <Clock className="mr-1 h-3 w-3" />
-                        {classItem.time}
-                      </span>
-                      <span>{classItem.room}</span>
-                      <span>{classItem.studentsCount} students</span>
+                    <div>
+                      <p className="font-medium">{classItem.className} - {classItem.subject}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {classItem.time} • {classItem.room} • {classItem.studentsCount} students
+                      </p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/teacher/classes/${classItem.id}`}>
-                      View
-                    </Link>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{classItem.status}</Badge>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/teacher/classes/${classItem.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               ))}
               {upcomingClasses.length === 0 && (
-                <div className="text-center py-6 text-muted-foreground">
-                  <Calendar className="mx-auto h-12 w-12 opacity-50" />
-                  <p className="mt-2">No classes scheduled for today</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No more classes scheduled for today</p>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="mr-2 h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>
-              Your latest activities and notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                  <div className="mt-1">
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">{activity.title}</h4>
-                      {activity.status && (
-                        <Badge variant="outline" className={getStatusColor(activity.status)}>
-                          {activity.status}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {activity.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {activity.timestamp.toLocaleTimeString()}
-                    </p>
-                  </div>
+        {/* Quick Actions & Performance */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/teacher/attendance">
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Mark Attendance
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/teacher/assignments">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Create Assignment
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/teacher/grades">
+                  <Award className="h-4 w-4 mr-2" />
+                  Enter Grades
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/teacher/messages">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Send Message
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Performance Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Performance Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Average Grade</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{stats?.averageGrade}</span>
+                  <TrendingUp className="h-4 w-4 text-green-600" />
                 </div>
-              ))}
-              {recentActivities.length === 0 && (
-                <div className="text-center py-6 text-muted-foreground">
-                  <Bell className="mx-auto h-12 w-12 opacity-50" />
-                  <p className="mt-2">No recent activities</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Attendance Rate</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{stats?.attendanceRate}%</span>
+                  <TrendingUp className="h-4 w-4 text-green-600" />
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Graded Assignments</span>
+                <span className="font-medium">{stats?.gradedAssignments}</span>
+              </div>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/teacher/analytics">
+                  View Detailed Analytics
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Recent Activities */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Frequently used actions for efficient classroom management
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Recent Activities
+          </CardTitle>
+          <CardDescription>Latest updates from your classes</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col" asChild>
-              <Link href="/teacher/attendance">
-                <ClipboardList className="h-6 w-6 mb-2" />
-                Take Attendance
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col" asChild>
-              <Link href="/teacher/assignments">
-                <FileText className="h-6 w-6 mb-2" />
-                Create Assignment
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col" asChild>
-              <Link href="/teacher/grades">
-                <GraduationCap className="h-6 w-6 mb-2" />
-                Grade Work
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col" asChild>
-              <Link href="/teacher/resources">
-                <BookOpen className="h-6 w-6 mb-2" />
-                Add Resources
-              </Link>
-            </Button>
+          <div className="space-y-4">
+            {recentActivities.map((activity) => (
+              <div key={activity.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                <div className={`mt-1 ${getActivityColor(activity.type, activity.status)}`}>
+                  {getActivityIcon(activity.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{activity.title}</p>
+                    {activity.status === 'new' && (
+                      <Badge variant="destructive" className="text-xs">New</Badge>
+                    )}
+                    {activity.priority === 'high' && (
+                      <Badge variant="outline" className="text-xs">High Priority</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{activity.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatTimeAgo(activity.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

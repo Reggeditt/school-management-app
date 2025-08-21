@@ -1,179 +1,85 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
+import { useTeacherData } from "@/hooks/teacher";
+import { GradeTable, Assignment } from "@/components/teacher/grade-table";
+import { GradeService, GradeStats, StudentGradeSummary } from "@/services/grade.service";
+import Link from "next/link";
+import {
+  GraduationCap,
+  Download,
+  Upload,
+  TrendingUp,
+  BarChart3,
+  Users,
+  Award,
+  AlertTriangle,
+  RefreshCw
+} from "lucide-react";
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  class: string;
-}
-
-interface Grade {
-  id: string;
-  studentId: string;
-  studentName: string;
-  assignmentId: string;
-  assignmentTitle: string;
-  assignmentType: string;
-  pointsEarned: number;
-  totalPoints: number;
-  percentage: number;
-  letterGrade: string;
-  submittedAt: Date;
-  gradedAt: Date;
-  feedback?: string;
-}
-
-interface GradeSummary {
-  studentId: string;
-  studentName: string;
-  totalPoints: number;
-  earnedPoints: number;
-  percentage: number;
-  letterGrade: string;
-  assignmentCount: number;
-}
-
-export default function TeacherGrades() {
+export default function TeacherGradesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [grades, setGrades] = useState<Grade[]>([]);
-  const [gradeSummaries, setGradeSummaries] = useState<GradeSummary[]>([]);
+  const { classes: teacherClasses, loading: dataLoading } = useTeacherData();
+  
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedClass, setSelectedClass] = useState("all");
+  const [studentGrades, setStudentGrades] = useState<StudentGradeSummary[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [gradeStats, setGradeStats] = useState<GradeStats | null>(null);
+  const [updating, setUpdating] = useState(false);
+
+  // Get school ID and teacher ID
+  const schoolId = user?.profile?.schoolId || 'default-school-id';
+  const teacherId = user?.uid || '';
 
   useEffect(() => {
-    loadGrades();
-  }, []);
+    if (teacherId && schoolId) {
+      loadGrades();
+    }
+  }, [teacherId, schoolId]);
 
   const loadGrades = async () => {
     try {
       setLoading(true);
       
-      // Mock data - replace with actual API call
-      const mockGrades: Grade[] = [
-        {
-          id: '1',
-          studentId: 's1',
-          studentName: 'John Smith',
-          assignmentId: 'a1',
-          assignmentTitle: 'Algebra Chapter 5 Homework',
-          assignmentType: 'homework',
-          pointsEarned: 85,
-          totalPoints: 100,
-          percentage: 85,
-          letterGrade: 'B',
-          submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          gradedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          feedback: 'Good work on most problems. Review factoring methods.'
-        },
-        {
-          id: '2',
-          studentId: 's1',
-          studentName: 'John Smith',
-          assignmentId: 'a2',
-          assignmentTitle: 'Science Fair Project',
-          assignmentType: 'project',
-          pointsEarned: 180,
-          totalPoints: 200,
-          percentage: 90,
-          letterGrade: 'A-',
-          submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-          gradedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          feedback: 'Excellent experiment design and presentation.'
-        },
-        {
-          id: '3',
-          studentId: 's2',
-          studentName: 'Emma Johnson',
-          assignmentId: 'a1',
-          assignmentTitle: 'Algebra Chapter 5 Homework',
-          assignmentType: 'homework',
-          pointsEarned: 95,
-          totalPoints: 100,
-          percentage: 95,
-          letterGrade: 'A',
-          submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          gradedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          feedback: 'Perfect work! All problems solved correctly.'
-        },
-        {
-          id: '4',
-          studentId: 's2',
-          studentName: 'Emma Johnson',
-          assignmentId: 'a3',
-          assignmentTitle: 'Physics Quiz - Motion',
-          assignmentType: 'quiz',
-          pointsEarned: 42,
-          totalPoints: 50,
-          percentage: 84,
-          letterGrade: 'B',
-          submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          gradedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-          feedback: 'Good understanding of concepts. Minor calculation errors.'
-        },
-        {
-          id: '5',
-          studentId: 's3',
-          studentName: 'Michael Brown',
-          assignmentId: 'a1',
-          assignmentTitle: 'Algebra Chapter 5 Homework',
-          assignmentType: 'homework',
-          pointsEarned: 72,
-          totalPoints: 100,
-          percentage: 72,
-          letterGrade: 'C',
-          submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          gradedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          feedback: 'Needs improvement on complex equations. Come to office hours.'
-        }
-      ];
-
-      setGrades(mockGrades);
+      const [grades, stats] = await Promise.all([
+        GradeService.getTeacherGrades(teacherId, schoolId),
+        GradeService.getGradeStats(teacherId, schoolId)
+      ]);
       
-      // Calculate grade summaries
-      const studentGrades = mockGrades.reduce((acc, grade) => {
-        if (!acc[grade.studentId]) {
-          acc[grade.studentId] = {
-            studentId: grade.studentId,
-            studentName: grade.studentName,
-            totalPoints: 0,
-            earnedPoints: 0,
-            assignmentCount: 0
-          };
-        }
-        
-        acc[grade.studentId].totalPoints += grade.totalPoints;
-        acc[grade.studentId].earnedPoints += grade.pointsEarned;
-        acc[grade.studentId].assignmentCount += 1;
-        
-        return acc;
-      }, {} as Record<string, any>);
-
-      const summaries: GradeSummary[] = Object.values(studentGrades).map((summary: any) => {
-        const percentage = Math.round((summary.earnedPoints / summary.totalPoints) * 100);
-        return {
-          ...summary,
-          percentage,
-          letterGrade: getLetterGrade(percentage)
-        };
+      setStudentGrades(grades);
+      setGradeStats(stats);
+      
+      // Extract unique assignments from grades
+      const assignmentMap = new Map<string, Assignment>();
+      grades.forEach(student => {
+        Object.entries(student.assignments).forEach(([assignmentId, assignment]) => {
+          if (!assignmentMap.has(assignmentId)) {
+            assignmentMap.set(assignmentId, {
+              id: assignmentId,
+              title: assignment.title,
+              maxPoints: assignment.maxPoints,
+              dueDate: '', // Would come from assignment data
+              className: student.className,
+              submissionCount: 0, // Would be calculated
+              gradedCount: 0 // Would be calculated
+            });
+          }
+        });
       });
-
-      setGradeSummaries(summaries);
+      
+      setAssignments(Array.from(assignmentMap.values()));
+      
     } catch (error) {
+      console.error('Error loading grades:', error);
       toast({
         title: "Error",
-        description: "Failed to load grades",
+        description: "Failed to load grades. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -181,63 +87,103 @@ export default function TeacherGrades() {
     }
   };
 
-  const getLetterGrade = (percentage: number): string => {
-    if (percentage >= 97) return 'A+';
-    if (percentage >= 93) return 'A';
-    if (percentage >= 90) return 'A-';
-    if (percentage >= 87) return 'B+';
-    if (percentage >= 83) return 'B';
-    if (percentage >= 80) return 'B-';
-    if (percentage >= 77) return 'C+';
-    if (percentage >= 73) return 'C';
-    if (percentage >= 70) return 'C-';
-    if (percentage >= 67) return 'D+';
-    if (percentage >= 63) return 'D';
-    if (percentage >= 60) return 'D-';
-    return 'F';
+  const handleGradeUpdate = async (studentId: string, assignmentId: string, grade: number | null) => {
+    try {
+      setUpdating(true);
+      
+      await GradeService.updateGrade(studentId, assignmentId, grade);
+      
+      // Update local state
+      setStudentGrades(prev => prev.map(student => {
+        if (student.studentId === studentId) {
+          const updatedAssignments = { ...student.assignments };
+          if (updatedAssignments[assignmentId]) {
+            updatedAssignments[assignmentId] = {
+              ...updatedAssignments[assignmentId],
+              grade,
+              gradedAt: new Date().toISOString()
+            };
+          }
+          
+          // Recalculate overall grade
+          const gradedAssignments = Object.values(updatedAssignments).filter(a => (a as any).grade !== null);
+          const totalPoints = gradedAssignments.reduce((sum, a) => sum + ((a as any).grade || 0), 0);
+          const maxPoints = gradedAssignments.reduce((sum, a) => sum + (a as any).maxPoints, 0);
+          const overallGrade = maxPoints > 0 ? (totalPoints / maxPoints) * 100 : 0;
+          
+          return {
+            ...student,
+            assignments: updatedAssignments,
+            overallGrade
+          };
+        }
+        return student;
+      }));
+      
+      toast({
+        title: "Grade Updated",
+        description: "Student grade has been successfully updated.",
+      });
+      
+    } catch (error) {
+      console.error('Error updating grade:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update grade. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const getGradeColor = (letterGrade: string) => {
-    if (['A+', 'A', 'A-'].includes(letterGrade)) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-    if (['B+', 'B', 'B-'].includes(letterGrade)) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-    if (['C+', 'C', 'C-'].includes(letterGrade)) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
-    if (['D+', 'D', 'D-'].includes(letterGrade)) return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
-    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+  const handleBulkExport = async () => {
+    try {
+      const csvContent = await GradeService.exportGrades(teacherId, schoolId);
+      
+      // Create and download CSV file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `grades_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: "Grades have been exported to CSV file.",
+      });
+      
+    } catch (error) {
+      console.error('Error exporting grades:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export grades. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const filteredGrades = grades.filter(grade => 
-    grade.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    grade.assignmentTitle.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredSummaries = gradeSummaries.filter(summary => 
-    summary.studentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Gradebook</h1>
+          <div>
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse mt-2"></div>
+          </div>
         </div>
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
+        <div className="grid gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
-                <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-20"></div>
               </CardHeader>
               <CardContent>
-                <div className="h-3 bg-gray-300 rounded w-full mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-8 bg-gray-200 rounded w-16"></div>
               </CardContent>
             </Card>
           ))}
@@ -251,231 +197,145 @@ export default function TeacherGrades() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gradebook</h1>
-          <p className="text-muted-foreground">
-            Track and manage student grades and performance
+          <h1 className="text-3xl font-bold text-gray-900">Grade Book</h1>
+          <p className="text-gray-600 mt-1">
+            Manage student grades and track academic progress
           </p>
         </div>
-        <Button>
-          📊 Export Grades
-        </Button>
-      </div>
-
-      {/* Search */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search students or assignments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={loadGrades} disabled={updating}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${updating ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={handleBulkExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export Grades
+          </Button>
+          <Button asChild>
+            <Link href="/teacher/assignments">
+              <Upload className="h-4 w-4 mr-2" />
+              New Assignment
+            </Link>
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Grade Overview</TabsTrigger>
-          <TabsTrigger value="detailed">Detailed Grades</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* Grade Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+      {/* Stats Overview */}
+      {gradeStats && (
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Student Grade Summary</CardTitle>
-              <CardDescription>
-                Overall performance across all assignments
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Assignments</TableHead>
-                    <TableHead>Points Earned</TableHead>
-                    <TableHead>Total Points</TableHead>
-                    <TableHead>Percentage</TableHead>
-                    <TableHead>Grade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSummaries.map((summary) => (
-                    <TableRow key={summary.studentId}>
-                      <TableCell className="font-medium">{summary.studentName}</TableCell>
-                      <TableCell>{summary.assignmentCount}</TableCell>
-                      <TableCell>{summary.earnedPoints}</TableCell>
-                      <TableCell>{summary.totalPoints}</TableCell>
-                      <TableCell>{summary.percentage}%</TableCell>
-                      <TableCell>
-                        <Badge className={getGradeColor(summary.letterGrade)}>
-                          {summary.letterGrade}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="text-2xl font-bold">{gradeStats.totalStudents}</div>
+              <p className="text-xs text-muted-foreground">
+                Across all classes
+              </p>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Detailed Grades Tab */}
-        <TabsContent value="detailed" className="space-y-4">
+          
           <Card>
-            <CardHeader>
-              <CardTitle>Individual Assignment Grades</CardTitle>
-              <CardDescription>
-                Detailed breakdown of all graded assignments
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Grades</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Assignment</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Grade</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Graded</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredGrades.map((grade) => (
-                    <TableRow key={grade.id}>
-                      <TableCell className="font-medium">{grade.studentName}</TableCell>
-                      <TableCell>{grade.assignmentTitle}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {grade.assignmentType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {grade.pointsEarned}/{grade.totalPoints}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getGradeColor(grade.letterGrade)}>
-                          {grade.letterGrade} ({grade.percentage}%)
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(grade.submittedAt)}</TableCell>
-                      <TableCell>{formatDate(grade.gradedAt)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="text-2xl font-bold">{gradeStats.pendingGrades}</div>
+              <p className="text-xs text-muted-foreground">
+                Assignments to grade
+              </p>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Class Average
-                </CardTitle>
-                <div className="text-2xl">📊</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {gradeSummaries.length > 0 
-                    ? Math.round(gradeSummaries.reduce((sum, s) => sum + s.percentage, 0) / gradeSummaries.length)
-                    : 0}%
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Overall class performance
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  A Students
-                </CardTitle>
-                <div className="text-2xl">🌟</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {gradeSummaries.filter(s => ['A+', 'A', 'A-'].includes(s.letterGrade)).length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Students with A grades
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Needs Help
-                </CardTitle>
-                <div className="text-2xl">⚠️</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {gradeSummaries.filter(s => ['D+', 'D', 'D-', 'F'].includes(s.letterGrade)).length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Students below C grade
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Assignments Graded
-                </CardTitle>
-                <div className="text-2xl">✅</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{grades.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Total graded submissions
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
+          
           <Card>
-            <CardHeader>
-              <CardTitle>Grade Distribution</CardTitle>
-              <CardDescription>
-                Breakdown of letter grades across all students
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Class Average</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'].map(grade => {
-                  const count = gradeSummaries.filter(s => s.letterGrade === grade).length;
-                  const percentage = gradeSummaries.length > 0 ? (count / gradeSummaries.length) * 100 : 0;
-                  
-                  return (
-                    <div key={grade} className="flex items-center space-x-3">
-                      <div className="w-8 text-sm font-medium">{grade}</div>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                      <div className="w-12 text-sm text-muted-foreground">
-                        {count} ({Math.round(percentage)}%)
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="text-2xl font-bold">{gradeStats.classAverage.toFixed(1)}%</div>
+              <p className="text-xs text-muted-foreground">
+                Overall performance
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+              <Award className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-bold truncate">{gradeStats.topPerformer}</div>
+              <p className="text-xs text-muted-foreground">
+                Highest grade
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Grade Table */}
+      <GradeTable
+        studentGrades={studentGrades}
+        assignments={assignments}
+        loading={loading}
+        onGradeUpdate={handleGradeUpdate}
+        onBulkExport={handleBulkExport}
+      />
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardContent className="p-6">
+            <Link href="/teacher/assignments" className="block">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <GraduationCap className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Create Assignment</h3>
+                  <p className="text-sm text-gray-500">Add new assignment to grade</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardContent className="p-6">
+            <Link href="/teacher/analytics" className="block">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">View Analytics</h3>
+                  <p className="text-sm text-gray-500">Grade trends and insights</p>
+                </div>
+              </div>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardContent className="p-6">
+            <Link href="/teacher/students" className="block">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <Users className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Student Profiles</h3>
+                  <p className="text-sm text-gray-500">View individual progress</p>
+                </div>
+              </div>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

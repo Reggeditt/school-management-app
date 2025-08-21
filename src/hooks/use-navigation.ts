@@ -109,22 +109,22 @@ const navigationConfigs: Record<PortalType, NavigationItem[]> = {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      href: '/teacher/dashboard',
-      icon: 'dashboard',
+      href: '/teacher',
+      icon: 'home',
       description: 'Teaching overview'
     },
     {
       id: 'classes',
       label: 'My Classes',
       href: '/teacher/classes',
-      icon: 'school',
+      icon: 'users',
       description: 'Assigned classes'
     },
     {
       id: 'students',
       label: 'Students',
       href: '/teacher/students',
-      icon: 'users',
+      icon: 'user-check',
       description: 'Class students'
     },
     {
@@ -138,12 +138,12 @@ const navigationConfigs: Record<PortalType, NavigationItem[]> = {
       id: 'assignments',
       label: 'Assignments',
       href: '/teacher/assignments',
-      icon: 'file-plus',
+      icon: 'file-text',
       description: 'Create and grade'
     },
     {
       id: 'grades',
-      label: 'Grades',
+      label: 'Gradebook',
       href: '/teacher/grades',
       icon: 'award',
       description: 'Grade management'
@@ -154,6 +154,34 @@ const navigationConfigs: Record<PortalType, NavigationItem[]> = {
       href: '/teacher/schedule',
       icon: 'calendar',
       description: 'Class timetable'
+    },
+    {
+      id: 'resources',
+      label: 'Resources',
+      href: '/teacher/resources',
+      icon: 'book-open',
+      description: 'Teaching materials'
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      href: '/teacher/analytics',
+      icon: 'bar-chart-3',
+      description: 'Performance insights'
+    },
+    {
+      id: 'messages',
+      label: 'Messages',
+      href: '/teacher/messages',
+      icon: 'message-square',
+      description: 'Communications'
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      href: '/teacher/settings',
+      icon: 'settings',
+      description: 'Account preferences'
     }
   ],
   student: [

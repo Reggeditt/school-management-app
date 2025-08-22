@@ -1,22 +1,26 @@
 import { NextResponse } from 'next/server';
-import { initializeDemoSchool, DemoDataSeeder } from '../../../lib/demo-data';
+import { DemoDataSeeder } from '../../../lib/demo-data';
 
 export async function POST() {
   try {
     
-    // Create demo school and seed with data
-    const schoolId = await initializeDemoSchool();
+    // Create all demo schools with comprehensive data
+    const schoolIds = await DemoDataSeeder.seedAllSchools();
     
     return NextResponse.json({
       success: true,
-      message: 'Demo data seeded successfully!',
-      schoolId,
+      message: 'Demo data seeded successfully for all 3 schools!',
+      schoolIds,
       data: {
-        school: DemoDataSeeder.DEMO_SCHOOL.name,
-        subjects: DemoDataSeeder.DEMO_SUBJECTS.length,
-        teachers: DemoDataSeeder.DEMO_TEACHERS.length,
-        classes: DemoDataSeeder.DEMO_CLASSES.length,
-        students: 50,
+        schools: [
+          { name: 'Ghana National School', status: 'active', id: schoolIds.ghanaSchoolId },
+          { name: 'Ashanti Academy', status: 'grace_period', id: schoolIds.ashantiSchoolId },
+          { name: 'Volta College', status: 'restricted', id: schoolIds.voltaSchoolId }
+        ],
+        totalFamilies: DemoDataSeeder.DEMO_FAMILIES.length,
+        totalStudents: DemoDataSeeder.DEMO_STUDENTS.length,
+        subjectsPerSchool: DemoDataSeeder.DEMO_SUBJECTS.length,
+        usersPerSchool: 7,
       },
     });
   } catch (error: any) {

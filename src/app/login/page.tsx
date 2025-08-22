@@ -53,11 +53,13 @@ function LoginForm() {
   };
 
   // Demo account quick login buttons
-  const handleDemoLogin = async (demoType: 'admin' | 'teacher' | 'student') => {
+  const handleDemoLogin = async (demoType: 'admin' | 'teacher' | 'student' | 'parent' | 'accountant') => {
     const demoCredentials = {
-      admin: { email: 'admin@stmarysschool.edu.ng', password: 'Admin123!' },
-      teacher: { email: 'j.adebayo@stmarysschool.edu.ng', password: 'Teacher123!' },
-      student: { email: 'student@stmarysschool.edu.ng', password: 'Student123!' }
+      admin: { email: 'admin@gnss.edu.gh', password: 'Admin123!' },
+      teacher: { email: 'teacher@gnss.edu.gh', password: 'Teacher123!' },
+      student: { email: 'student@gnss.edu.gh', password: 'Student123!' }, // This would be created when student accounts are added
+      parent: { email: 'parent@gnss.edu.gh', password: 'Parent123!' },
+      accountant: { email: 'accountant@gnss.edu.gh', password: 'Account123!' }
     };
 
     const credentials = demoCredentials[demoType];
@@ -68,16 +70,15 @@ function LoginForm() {
     setIsLoading(true);
     try {
       await signIn(credentials.email, credentials.password);
-      
+
       toast({
         title: `Welcome to the ${demoType} demo!`,
         description: "You are now signed in with demo credentials.",
       });
       
-      // Wait for auth state and cookies to be set
       setTimeout(() => {
         router.push(`/${demoType}/dashboard`);
-        router.refresh(); // Force a refresh to update middleware
+        router.refresh();
       }, 500);
       
     } catch (error: any) {
@@ -86,6 +87,48 @@ function LoginForm() {
         description: "Demo accounts may not be set up yet. Please use manual login.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Quick login for different schools
+  const handleSchoolLogin = async (school: 'ashanti' | 'volta') => {
+    const schoolCredentials = {
+      ashanti: { email: 'admin@ashantiacademy.edu.gh', password: 'Admin123!' },
+      volta: { email: 'admin@voltacollege.edu.gh', password: 'Admin123!' }
+    };
+
+    const credentials = schoolCredentials[school];
+    setEmail(credentials.email);
+    setPassword(credentials.password);
+    
+    setIsLoading(true);
+    try {
+      await signIn(credentials.email, credentials.password);
+
+      const schoolNames = {
+        ashanti: 'Ashanti Academy (Grace Period)',
+        volta: 'Volta College (Restricted)'
+      };
+
+      toast({
+        title: `Welcome to ${schoolNames[school]}!`,
+        description: "You are now signed in with demo credentials.",
+      });
+      
+      setTimeout(() => {
+        router.push('/admin/dashboard');
+        router.refresh();
+      }, 500);
+      
+    } catch (error: any) {
+      toast({
+        title: "Demo Login Failed",
+        description: "Demo accounts may not be set up yet. Please use manual login.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -216,6 +259,13 @@ function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
+          {/* Demo Info */}
+          <div className="w-full bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
+              💡 <strong>Demo Available:</strong> Use the landing page "Initialize Demo Data" button first, then try these accounts to explore different user roles and subscription statuses.
+            </p>
+          </div>
+
           {/* Demo Login Section */}
           <div className="w-full">
             <div className="relative mb-4">
@@ -224,37 +274,95 @@ function LoginForm() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  Demo Accounts
+                  Ghana National School Demo Accounts
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 mb-3">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => handleDemoLogin('admin')}
                 disabled={isLoading}
-                className="text-xs"
+                className="text-xs flex items-center gap-1"
               >
-                Admin
+                <span className="text-green-600">🎓</span>
+                Principal
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => handleDemoLogin('teacher')}
                 disabled={isLoading}
-                className="text-xs"
+                className="text-xs flex items-center gap-1"
               >
+                <span className="text-blue-600">👨‍🏫</span>
                 Teacher
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleDemoLogin('student')}
+                onClick={() => handleDemoLogin('parent')}
                 disabled={isLoading}
-                className="text-xs"
+                className="text-xs flex items-center gap-1"
               >
-                Student
+                <span className="text-purple-600">👨‍👩‍👧‍👦</span>
+                Parent
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleDemoLogin('accountant')}
+                disabled={isLoading}
+                className="text-xs flex items-center gap-1"
+              >
+                <span className="text-orange-600">💰</span>
+                Accountant
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Active subscription • ₵7,000/term for 280 students
+            </p>
+          </div>
+
+          {/* Other Schools Quick Access */}
+          <div className="w-full">
+            <div className="relative mb-3">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                  Other Demo Schools
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleSchoolLogin('ashanti')}
+                disabled={isLoading}
+                className="text-xs flex items-center justify-between p-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-600">⚠️</span>
+                  <span>Ashanti Academy</span>
+                </div>
+                <span className="text-xs text-yellow-600">Grace Period</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleSchoolLogin('volta')}
+                disabled={isLoading}
+                className="text-xs flex items-center justify-between p-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-red-600">🚫</span>
+                  <span>Volta College</span>
+                </div>
+                <span className="text-xs text-red-600">Expired</span>
               </Button>
             </div>
           </div>

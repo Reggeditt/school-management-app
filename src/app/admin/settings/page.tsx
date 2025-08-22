@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useStore } from "@/contexts/store-context";
 import { School } from "@/lib/database-services";
 import { validateSchoolSettingsForm, validateUserPreferencesForm, SchoolSettingsFormData, UserPreferencesFormData } from "@/lib/form-utils";
+import { SubscriptionStatusCard, UsageOverview } from "@/components/subscription-status";
 
 export default function SettingsPage() {
   const { state, loadSchool, updateSchool, updateUserPreferences } = useStore();
@@ -158,8 +159,9 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="academic">Academic</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -246,6 +248,38 @@ export default function SettingsPage() {
                 >
                   {saving || state.loading.school ? 'Saving...' : 'Save School Settings'}
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="subscription" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SubscriptionStatusCard />
+            <UsageOverview />
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Billing Information</CardTitle>
+              <CardDescription>
+                Manage your subscription and billing details.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">Advanced billing management features coming soon!</p>
+                <div className="space-y-2">
+                  <Button variant="outline" className="w-full max-w-md">
+                    Download Invoice
+                  </Button>
+                  <Button variant="outline" className="w-full max-w-md">
+                    Update Payment Method
+                  </Button>
+                  <Button variant="outline" className="w-full max-w-md">
+                    Change Plan
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

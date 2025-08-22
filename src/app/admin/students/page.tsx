@@ -10,6 +10,9 @@ import { StatusBadge } from '@/components/navigation/data-table';
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { StudentFormDialog } from '@/components/students/student-form-dialog';
+import { BulkUploadDialog } from '@/components/bulk-upload/bulk-upload-dialog';
+import { ExportDialog } from '@/components/export/export-dialog';
 
 export default function StudentsPage() {
   const router = useRouter();
@@ -25,6 +28,10 @@ export default function StudentsPage() {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportStudents, setExportStudents] = useState<Student[]>([]);
+  const [exportType, setExportType] = useState<'selected' | 'all'>('selected');
 
   // Load data on component mount
   useEffect(() => {
@@ -104,14 +111,17 @@ export default function StudentsPage() {
       )
     },
     {
-      key: 'parentName',
-      label: 'Parent/Guardian',
-      render: (value: any, student: Student) => (
-        <div className="text-sm">
-          <div className="font-medium">{student.parentName}</div>
-          <div className="text-muted-foreground">{student.parentPhone}</div>
-        </div>
-      )
+      key: 'guardians',
+      label: 'Primary Guardian',
+      render: (value: any, student: Student) => {
+        const primaryGuardian = student.guardians?.find(g => g.isPrimary) || student.guardians?.[0];
+        return (
+          <div className="text-sm">
+            <div className="font-medium">{primaryGuardian?.name || 'No guardian'}</div>
+            <div className="text-muted-foreground">{primaryGuardian?.phone || 'No phone'}</div>
+          </div>
+        );
+      }
     },
     {
       key: 'dateOfBirth',
@@ -198,6 +208,47 @@ export default function StudentsPage() {
     setIsFormOpen(true);
   };
 
+  // Handle form submission
+  const handleFormSubmit = async (studentData: Partial<Student>) => {
+    try {
+      if (selectedStudent) {
+        // Update existing student
+        await updateStudent(selectedStudent.id, studentData);
+        toast({
+          title: "Success",
+          description: "Student updated successfully",
+        });
+      } else {
+        // Add new student - ensure required fields are present
+        const completeStudentData = {
+          ...studentData,
+          address: studentData.address || '',
+          email: studentData.email || '',
+          phone: studentData.phone || '',
+          bloodGroup: studentData.bloodGroup || '',
+          religion: studentData.religion || '',
+          previousSchool: studentData.previousSchool || '',
+        } as Omit<Student, "id" | "createdAt" | "updatedAt">;
+        
+        await addStudent(completeStudentData);
+        toast({
+          title: "Success",
+          description: "Student added successfully",
+        });
+      }
+      setIsFormOpen(false);
+      setSelectedStudent(null);
+      return true;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: selectedStudent ? "Failed to update student" : "Failed to add student",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   // Handle bulk actions
   const handleBulkDelete = async (selectedStudents: Student[]) => {
     if (!confirm(`Are you sure you want to delete ${selectedStudents.length} students? This action cannot be undone.`)) {
@@ -219,10 +270,53 @@ export default function StudentsPage() {
   };
 
   const handleBulkExport = (selectedStudents: Student[]) => {
-    toast({
-      title: "Export Students",
-      description: `Exporting ${selectedStudents.length} students - Feature coming soon!`,
-    });
+    setExportStudents(selectedStudents);
+    setExportType('selected');
+    setIsExportDialogOpen(true);
+  };
+
+  const handleExportAll = () => {
+    setExportStudents(state.students);
+    setExportType('all');
+    setIsExportDialogOpen(true);
+  };
+
+  // Handle bulk upload
+  const handleBulkUpload = () => {
+    setIsBulkUploadOpen(true);
+  };
+
+  const handleBulkImport = async (students: Partial<Student>[]) => {
+    try {
+      const response = await fetch('/api/bulk-import-students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ students }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        await loadStudents(); // Refresh the student list
+        toast({
+          title: "Success",
+          description: `Successfully imported ${result.importedCount} students`,
+        });
+        setIsBulkUploadOpen(false);
+        return true;
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to import students: ${error}`,
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   return (
@@ -241,7 +335,7 @@ export default function StudentsPage() {
         columns={columns}
         searchable={true}
         searchPlaceholder="Search students by name, ID, email, or phone..."
-        searchKeys={['firstName', 'lastName', 'studentId', 'email', 'phone', 'parentName']}
+        searchKeys={['firstName', 'lastName', 'studentId', 'email', 'phone']}
         loading={state.loading.students}
         emptyStateMessage="No students found. Add your first student to get started."
         selectable={true}
@@ -252,6 +346,14 @@ export default function StudentsPage() {
           },
           bulk: [
             {
+              label: "Bulk Upload",
+              onClick: handleBulkUpload
+            },
+            {
+              label: "Export All",
+              onClick: handleExportAll
+            },
+            {
               label: "Delete Selected",
               onClick: handleBulkDelete
             },
@@ -261,6 +363,38 @@ export default function StudentsPage() {
             }
           ]
         }}
+      />
+
+      {/* Student Form Dialog */}
+      <StudentFormDialog
+        open={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedStudent(null);
+        }}
+        student={selectedStudent}
+        classes={state.classes}
+        existingStudents={state.students}
+        onSubmit={handleFormSubmit}
+      />
+
+      {/* Bulk Upload Dialog */}
+      <BulkUploadDialog
+        open={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        classes={state.classes}
+        existingStudents={state.students}
+        onBulkImport={handleBulkImport}
+      />
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={isExportDialogOpen}
+        onClose={() => setIsExportDialogOpen(false)}
+        students={state.students}
+        selectedStudents={exportStudents}
+        classes={state.classes}
+        exportType={exportType}
       />
     </div>
   );

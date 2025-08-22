@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { useStore } from '@/contexts/store-context';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DemoSeedButton } from '@/components/demo-seed-button';
+import { DemoDeleteButton } from '@/components/demo-delete-button';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -36,9 +38,15 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="text-sm text-muted-foreground">
-          Welcome back, Admin!
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div className="text-sm text-muted-foreground mt-1">
+            Welcome back, Admin!
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <DemoSeedButton />
+          <DemoDeleteButton />
         </div>
       </div>
       

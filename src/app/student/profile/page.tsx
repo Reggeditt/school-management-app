@@ -44,11 +44,12 @@ export default function StudentProfile() {
 
   const handleEdit = () => {
     setIsEditing(true);
+    const emergencyGuardian = currentStudent?.guardians?.find(g => g.isEmergencyContact);
     setEditedProfile({
       phone: currentStudent?.phone || '',
       address: currentStudent?.address || '',
-      emergencyContact: currentStudent?.emergencyContact || '',
-      emergencyPhone: currentStudent?.emergencyPhone || '',
+      emergencyContact: emergencyGuardian?.name || '',
+      emergencyPhone: emergencyGuardian?.phone || '',
       bloodGroup: currentStudent?.bloodGroup || '',
     });
   };
@@ -281,28 +282,28 @@ export default function StudentProfile() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="parentName">Parent/Guardian Name</Label>
+                  <Label htmlFor="parentName">Primary Guardian Name</Label>
                   <Input
                     id="parentName"
-                    value={currentStudent.parentName}
+                    value={currentStudent.guardians?.find(g => g.isPrimary)?.name || 'Not provided'}
                     disabled
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="parentPhone">Parent Phone</Label>
+                  <Label htmlFor="parentPhone">Primary Guardian Phone</Label>
                   <Input
                     id="parentPhone"
-                    value={currentStudent.parentPhone}
+                    value={currentStudent.guardians?.find(g => g.isPrimary)?.phone || 'Not provided'}
                     disabled
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="parentEmail">Parent Email</Label>
+                  <Label htmlFor="parentEmail">Primary Guardian Email</Label>
                   <Input
                     id="parentEmail"
-                    value={currentStudent.parentEmail || ''}
+                    value={currentStudent.guardians?.find(g => g.isPrimary)?.email || 'Not provided'}
                     disabled
                     className="mt-1"
                   />
@@ -335,7 +336,7 @@ export default function StudentProfile() {
                   <Label htmlFor="emergencyContact">Emergency Contact Name</Label>
                   <Input
                     id="emergencyContact"
-                    value={isEditing ? editedProfile.emergencyContact : (currentStudent.emergencyContact || '')}
+                    value={isEditing ? editedProfile.emergencyContact : (currentStudent.guardians?.find(g => g.isEmergencyContact)?.name || '')}
                     disabled={!isEditing}
                     onChange={(e) => setEditedProfile({...editedProfile, emergencyContact: e.target.value})}
                     className="mt-1"
@@ -345,7 +346,7 @@ export default function StudentProfile() {
                   <Label htmlFor="emergencyPhone">Emergency Phone Number</Label>
                   <Input
                     id="emergencyPhone"
-                    value={isEditing ? editedProfile.emergencyPhone : (currentStudent.emergencyPhone || '')}
+                    value={isEditing ? editedProfile.emergencyPhone : (currentStudent.guardians?.find(g => g.isEmergencyContact)?.phone || '')}
                     disabled={!isEditing}
                     onChange={(e) => setEditedProfile({...editedProfile, emergencyPhone: e.target.value})}
                     className="mt-1"

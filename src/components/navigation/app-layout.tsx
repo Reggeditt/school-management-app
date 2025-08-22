@@ -7,6 +7,7 @@ import { useNavigation, PortalType } from '@/hooks/use-navigation';
 import { getNavigationIcon } from './navigation-icons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { QuickSubscriptionStatus } from '@/components/subscription-status';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -242,6 +243,9 @@ function TopNavigation({
                   <p className="font-medium text-sm">{userInfo.name}</p>
                   <p className="text-xs text-muted-foreground">{userInfo.email}</p>
                   <p className="text-xs text-muted-foreground capitalize">{userInfo.role}</p>
+                  <div className="mt-2">
+                    <QuickSubscriptionStatus />
+                  </div>
                 </div>
                 <div className="p-1">
                   <Button

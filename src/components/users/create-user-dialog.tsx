@@ -40,7 +40,9 @@ const defaultPermissions = {
   teacher: ["view_classes", "manage_attendance", "manage_grades", "view_students", "manage_assignments"],
   student: ["view_grades", "view_attendance", "view_schedule", "submit_assignments", "view_announcements"],
   parent: ["view_child_grades", "view_child_attendance", "view_child_schedule", "communicate_teachers"],
-  staff: ["view_basic_data", "manage_resources", "view_schedules"]
+  staff: ["view_basic_data", "manage_resources", "view_schedules"],
+  accountant: ["view_basic_data", "manage_fees", "view_financial_reports", "manage_billing", "view_students"],
+  hr: ["view_basic_data", "manage_staff", "view_staff", "manage_recruitment", "manage_payroll"]
 };
 
 export function CreateUserDialog({ onClose, onUserCreated }: CreateUserDialogProps) {

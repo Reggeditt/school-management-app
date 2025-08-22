@@ -6,6 +6,7 @@ import { useStore } from '@/contexts/store-context';
 import { useToast } from '@/components/ui/use-toast';
 import { Student } from '@/lib/database-services';
 import { StudentDetailView } from '@/components/students/student-detail-view';
+import { StudentFormDialog } from '@/components/students/student-form-dialog';
 import { Button } from '@/components/ui/button';
 import { getNavigationIcon } from '@/components/navigation/navigation-icons';
 
@@ -16,6 +17,7 @@ export default function StudentDetailPage() {
   const { toast } = useToast();
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   const studentId = params.id as string;
 
@@ -57,8 +59,33 @@ export default function StudentDetailPage() {
   }, [studentId, state.students, state.classes, loadStudents, loadClasses, toast, router]);
 
   const handleEdit = () => {
-    // Navigate to edit page or open edit modal
-    router.push(`/admin/students/${studentId}/edit`);
+    setIsEditFormOpen(true);
+  };
+
+  const handleFormSubmit = async (studentData: Partial<Student>) => {
+    if (!student) return false;
+
+    try {
+      await updateStudent(student.id, studentData);
+      
+      // Update local student state
+      const updatedStudent = { ...student, ...studentData } as Student;
+      setStudent(updatedStudent);
+      
+      toast({
+        title: "Success",
+        description: "Student updated successfully",
+      });
+      setIsEditFormOpen(false);
+      return true;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update student",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const handleDelete = async () => {
@@ -115,12 +142,23 @@ export default function StudentDetailPage() {
   }
 
   return (
-    <StudentDetailView
-      student={student}
-      classes={state.classes}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onClose={handleClose}
-    />
+    <>
+      <StudentDetailView
+        student={student}
+        classes={state.classes}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onClose={handleClose}
+      />
+      
+      <StudentFormDialog
+        open={isEditFormOpen}
+        onClose={() => setIsEditFormOpen(false)}
+        student={student}
+        classes={state.classes}
+        existingStudents={state.students}
+        onSubmit={handleFormSubmit}
+      />
+    </>
   );
 }

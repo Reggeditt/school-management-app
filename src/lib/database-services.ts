@@ -35,8 +35,68 @@ export interface School {
   totalStudents: number;
   totalTeachers: number;
   academicYear: string;
+  
+  // 🔐 Subscription Management Fields
+  subscription: {
+    plan: 'free' | 'basic' | 'standard' | 'premium' | 'enterprise';
+    status: 'active' | 'grace_period' | 'restricted' | 'suspended';
+    currentTermStart: Date;
+    currentTermEnd: Date;
+    nextBillingDate: Date;
+    gracePeriodEnd?: Date; // 10 days after due date
+    lastPaymentDate?: Date;
+    lastPaymentAmount?: number;
+    features: string[]; // List of enabled features
+    
+    // Term-based billing
+    currentTerm: {
+      name: string; // e.g., "Term 1 2024/2025"
+      startDate: Date;
+      endDate: Date;
+      studentCount: number; // Students enrolled at billing time
+      amountCharged: number;
+    };
+  };
+  
+  // 📊 Usage & Limits
+  usage: {
+    currentStudents: number;
+    currentTeachers: number;
+    currentClasses: number;
+    storageUsed: number; // in MB
+    monthlyActiveUsers: number;
+  };
+  
+  // 💰 Payment Information
+  billing: {
+    contactEmail: string;
+    contactPhone: string;
+    address?: string;
+    currency: 'NGN' | 'USD' | 'EUR' | 'GBP' | 'GHS';
+    paymentMethod?: 'card' | 'bank_transfer' | 'mobile_money';
+    lastInvoiceId?: string;
+    nextInvoiceAmount?: number;
+  };
+  
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface GuardianInfo {
+  id?: string; // Optional unique ID for the guardian
+  name: string;
+  relationship: 'father' | 'mother' | 'guardian' | 'grandparent' | 'uncle' | 'aunt' | 'sibling' | 'other';
+  phone: string;
+  email?: string;
+  address?: string;
+  occupation?: string;
+  workplace?: string;
+  workPhone?: string;
+  isPrimary: boolean; // Designates primary contact
+  isEmergencyContact: boolean; // Can be contacted in emergencies
+  canPickup: boolean; // Authorized to pick up student
+  hasFinancialResponsibility: boolean; // Responsible for fees
+  notes?: string;
 }
 
 export interface Student {
@@ -50,11 +110,7 @@ export interface Student {
   dateOfBirth: Date;
   gender: 'male' | 'female' | 'other';
   address: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string;
-  emergencyContact: string;
-  emergencyPhone: string;
+  guardians: GuardianInfo[]; // Array of guardians/parents
   classId: string;
   grade: string;
   section: string;
@@ -1078,3 +1134,309 @@ export class DatabaseService {
     }
   }
 }
+
+// ==================== EXPORTED UTILITY FUNCTIONS ====================
+
+// Export convenience functions for bulk operations
+export const getAllStudents = async (): Promise<Student[]> => {
+  try {
+    const studentsSnapshot = await getDocs(collection(db, 'students'));
+    return studentsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      dateOfBirth: doc.data().dateOfBirth?.toDate() || new Date(),
+      admissionDate: doc.data().admissionDate?.toDate() || new Date(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    })) as Student[];
+  } catch (error) {
+    console.error('Error getting all students:', error);
+    throw error;
+  }
+};
+
+export const getAllClasses = async (): Promise<Class[]> => {
+  try {
+    const classesSnapshot = await getDocs(collection(db, 'classes'));
+    return classesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    })) as Class[];
+  } catch (error) {
+    console.error('Error getting all classes:', error);
+    throw error;
+  }
+};
+
+export const addMultipleStudents = async (students: Partial<Student>[]): Promise<Student[]> => {
+  try {
+    const batch = writeBatch(db);
+    const results: Student[] = [];
+    
+    // Process students in batches of 500 (Firestore limit)
+    const batchSize = 500;
+    
+    for (let i = 0; i < students.length; i += batchSize) {
+      const currentBatch = students.slice(i, i + batchSize);
+      
+      for (const studentData of currentBatch) {
+        const docRef = doc(collection(db, 'students'));
+        
+        const studentWithTimestamps = {
+          ...studentData,
+          dateOfBirth: studentData.dateOfBirth ? Timestamp.fromDate(new Date(studentData.dateOfBirth)) : Timestamp.now(),
+          admissionDate: studentData.admissionDate ? Timestamp.fromDate(new Date(studentData.admissionDate)) : Timestamp.now(),
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        };
+        
+        batch.set(docRef, studentWithTimestamps);
+        
+        results.push({
+          id: docRef.id,
+          ...studentData,
+          dateOfBirth: studentData.dateOfBirth || new Date(),
+          admissionDate: studentData.admissionDate || new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Student);
+      }
+      
+      // Commit the batch
+      await batch.commit();
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error adding multiple students:', error);
+    throw error;
+  }
+};
+
+// ==================== SUBSCRIPTION MANAGEMENT ====================
+
+/**
+ * Update school subscription status
+ */
+export const updateSubscriptionStatus = async (
+  schoolId: string, 
+  status: School['subscription']['status']
+): Promise<void> => {
+  try {
+    const schoolRef = doc(db, 'schools', schoolId);
+    await updateDoc(schoolRef, {
+      'subscription.status': status,
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error updating subscription status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update school subscription plan with term-based billing
+ */
+export const updateSubscriptionPlan = async (
+  schoolId: string,
+  plan: School['subscription']['plan'],
+  features: string[],
+  termInfo: {
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    studentCount: number;
+    amountCharged: number;
+  }
+): Promise<void> => {
+  try {
+    const schoolRef = doc(db, 'schools', schoolId);
+    await updateDoc(schoolRef, {
+      'subscription.plan': plan,
+      'subscription.features': features,
+      'subscription.status': 'active',
+      'subscription.currentTermStart': Timestamp.fromDate(termInfo.startDate),
+      'subscription.currentTermEnd': Timestamp.fromDate(termInfo.endDate),
+      'subscription.nextBillingDate': Timestamp.fromDate(termInfo.endDate),
+      'subscription.currentTerm': {
+        name: termInfo.name,
+        startDate: Timestamp.fromDate(termInfo.startDate),
+        endDate: Timestamp.fromDate(termInfo.endDate),
+        studentCount: termInfo.studentCount,
+        amountCharged: termInfo.amountCharged,
+      },
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error updating subscription plan:', error);
+    throw error;
+  }
+};
+
+/**
+ * Record payment for term-based subscription
+ */
+export const recordSubscriptionPayment = async (
+  schoolId: string,
+  amount: number,
+  termInfo: {
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    studentCount: number;
+  },
+  currency: string = 'GHS'
+): Promise<void> => {
+  try {
+    const schoolRef = doc(db, 'schools', schoolId);
+
+    await updateDoc(schoolRef, {
+      'subscription.status': 'active',
+      'subscription.lastPaymentDate': Timestamp.now(),
+      'subscription.lastPaymentAmount': amount,
+      'subscription.currentTermStart': Timestamp.fromDate(termInfo.startDate),
+      'subscription.currentTermEnd': Timestamp.fromDate(termInfo.endDate),
+      'subscription.nextBillingDate': Timestamp.fromDate(termInfo.endDate),
+      'subscription.gracePeriodEnd': null, // Clear grace period
+      'subscription.currentTerm': {
+        name: termInfo.name,
+        startDate: Timestamp.fromDate(termInfo.startDate),
+        endDate: Timestamp.fromDate(termInfo.endDate),
+        studentCount: termInfo.studentCount,
+        amountCharged: amount,
+      },
+      'billing.lastPayment.amount': amount,
+      'billing.lastPayment.currency': currency,
+      'billing.lastPayment.date': Timestamp.now(),
+      'billing.lastPayment.status': 'completed',
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error recording subscription payment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update school usage statistics
+ */
+export const updateSchoolUsage = async (
+  schoolId: string,
+  usage: Partial<School['usage']>
+): Promise<void> => {
+  try {
+    const schoolRef = doc(db, 'schools', schoolId);
+    const updateData: any = { updatedAt: Timestamp.now() };
+    
+    // Build update object with proper field paths
+    Object.entries(usage).forEach(([key, value]) => {
+      updateData[`usage.${key}`] = value;
+    });
+
+    await updateDoc(schoolRef, updateData);
+  } catch (error) {
+    console.error('Error updating school usage:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get schools with overdue payments (for background processing)
+ */
+export const getOverdueSchools = async (): Promise<School[]> => {
+  try {
+    const now = Timestamp.now();
+    const schoolsQuery = query(
+      collection(db, 'schools'),
+      where('subscription.currentTermEnd', '<', now),
+      where('subscription.status', 'in', ['active', 'grace_period'])
+    );
+    
+    const snapshot = await getDocs(schoolsQuery);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+      subscription: {
+        ...doc.data().subscription,
+        currentTermStart: doc.data().subscription?.currentTermStart?.toDate() || new Date(),
+        currentTermEnd: doc.data().subscription?.currentTermEnd?.toDate() || new Date(),
+        nextBillingDate: doc.data().subscription?.nextBillingDate?.toDate() || new Date(),
+        gracePeriodEnd: doc.data().subscription?.gracePeriodEnd?.toDate(),
+        lastPaymentDate: doc.data().subscription?.lastPaymentDate?.toDate(),
+        currentTerm: {
+          ...doc.data().subscription?.currentTerm,
+          startDate: doc.data().subscription?.currentTerm?.startDate?.toDate() || new Date(),
+          endDate: doc.data().subscription?.currentTerm?.endDate?.toDate() || new Date(),
+        }
+      }
+    })) as School[];
+  } catch (error) {
+    console.error('Error getting overdue schools:', error);
+    throw error;
+  }
+};
+
+/**
+ * Trigger grace period for overdue school
+ */
+export const triggerGracePeriod = async (schoolId: string): Promise<void> => {
+  try {
+    const gracePeriodEnd = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000); // 10 days grace
+    
+    const schoolRef = doc(db, 'schools', schoolId);
+    await updateDoc(schoolRef, {
+      'subscription.status': 'grace_period',
+      'subscription.gracePeriodEnd': Timestamp.fromDate(gracePeriodEnd),
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error triggering grace period:', error);
+    throw error;
+  }
+};
+
+/**
+ * Restrict school access after grace period
+ */
+export const restrictSchoolAccess = async (schoolId: string): Promise<void> => {
+  try {
+    const schoolRef = doc(db, 'schools', schoolId);
+    await updateDoc(schoolRef, {
+      'subscription.status': 'restricted',
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error('Error restricting school access:', error);
+    throw error;
+  }
+};
+
+/**
+ * Auto-calculate and update usage statistics for a school
+ */
+export const refreshSchoolUsageStats = async (schoolId: string): Promise<void> => {
+  try {
+    // Get current counts from collections
+    const [studentsSnapshot, teachersSnapshot, classesSnapshot] = await Promise.all([
+      getDocs(query(collection(db, 'students'), where('schoolId', '==', schoolId))),
+      getDocs(query(collection(db, 'teachers'), where('schoolId', '==', schoolId))),
+      getDocs(query(collection(db, 'classes'), where('schoolId', '==', schoolId)))
+    ]);
+
+    const usage = {
+      currentStudents: studentsSnapshot.size,
+      currentTeachers: teachersSnapshot.size,
+      currentClasses: classesSnapshot.size,
+      lastUpdated: new Date(),
+    };
+
+    await updateSchoolUsage(schoolId, usage);
+  } catch (error) {
+    console.error('Error refreshing school usage stats:', error);
+    throw error;
+  }
+};

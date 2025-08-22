@@ -57,8 +57,8 @@ export function StudentTableRow({ student, onView, onEdit, onDelete }: StudentRo
       {/* Parent Info */}
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm">
-          <div className="font-medium">{student.parentName}</div>
-          <div className="text-gray-500 dark:text-gray-400">{student.parentPhone}</div>
+          <div className="font-medium">{student.guardians?.[0]?.name || 'No guardian'}</div>
+          <div className="text-gray-500 dark:text-gray-400">{student.guardians?.[0]?.phone || ''}</div>
         </div>
       </td>
 

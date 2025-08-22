@@ -8,53 +8,82 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 const DEMO_ACCOUNTS = [
+  // Ghana National School (Active Subscription)
   {
-    email: 'admin@stmarysschool.edu.ng',
+    email: 'admin@gnss.edu.gh',
     password: 'Admin123!',
     role: 'admin',
-    name: 'Dr. Adebola Johnson',
-    description: 'Principal - Full administrative access',
-    color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
-  },
-  {
-    email: 'headteacher@stmarysschool.edu.ng',
-    password: 'Teacher123!',
-    role: 'admin',
-    name: 'Mrs. Grace Okafor',
-    description: 'Head Teacher - Administrative access',
-    color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
-  },
-  {
-    email: 'j.adebayo@stmarysschool.edu.ng',
-    password: 'Teacher123!',
-    role: 'teacher',
-    name: 'John Adebayo',
-    description: 'Mathematics Teacher',
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
-  },
-  {
-    email: 's.okonkwo@stmarysschool.edu.ng',
-    password: 'Teacher123!',
-    role: 'teacher',
-    name: 'Sarah Okonkwo',
-    description: 'English Teacher',
+    name: 'Dr. Kwame Nkrumah',
+    description: 'Principal - Ghana National School (Active)',
     color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
+    school: 'Ghana National School',
+    status: 'Active Subscription'
   },
   {
-    email: 'student@stmarysschool.edu.ng',
-    password: 'Student123!',
-    role: 'student',
-    name: 'Chioma Okwu',
-    description: 'Student Account',
-    color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100',
+    email: 'teacher@gnss.edu.gh',
+    password: 'Teacher123!',
+    role: 'teacher',
+    name: 'Mrs. Ama Serwaa',
+    description: 'Mathematics Teacher - Ghana National',
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
+    school: 'Ghana National School',
+    status: 'Active'
+  },
+  
+  // Ashanti Academy (Grace Period)
+  {
+    email: 'admin@ashantiacademy.edu.gh',
+    password: 'Admin123!',
+    role: 'admin',
+    name: 'Mrs. Yaa Asantewaa',
+    description: 'Principal - Ashanti Academy (Grace Period)',
+    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
+    school: 'Ashanti Academy',
+    status: 'Grace Period'
   },
   {
-    email: 'parent1@gmail.com',
+    email: 'teacher@ashantiacademy.edu.gh',
+    password: 'Teacher123!',
+    role: 'teacher',
+    name: 'Mr. Kwaku Ananse',
+    description: 'Science Teacher - Ashanti Academy',
+    color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
+    school: 'Ashanti Academy',
+    status: 'Grace Period'
+  },
+  
+  // Volta College (Restricted Access)
+  {
+    email: 'admin@voltacollege.edu.gh',
+    password: 'Admin123!',
+    role: 'admin',
+    name: 'Mr. Edem Agbodza',
+    description: 'Principal - Volta College (Restricted)',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
+    school: 'Volta College',
+    status: 'Subscription Expired'
+  },
+  
+  // Sample Parent and Student Accounts
+  {
+    email: 'parent@gnss.edu.gh',
     password: 'Parent123!',
     role: 'parent',
-    name: 'Mr. Emmanuel Adebayo',
-    description: 'Parent Account',
+    name: 'Mr. Kwame Asante',
+    description: 'Parent - Ghana National School',
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100',
+    school: 'Ghana National School',
+    status: 'Parent Portal'
+  },
+  {
+    email: 'accountant@gnss.edu.gh',
+    password: 'Account123!',
+    role: 'accountant',
+    name: 'Mrs. Efua Osei',
+    description: 'School Accountant - Ghana National',
+    color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100',
+    school: 'Ghana National School',
+    status: 'Financial Access'
   },
 ];
 
@@ -74,9 +103,14 @@ export function DemoAccountsList() {
   return (
     <div className="mt-8 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-          🔐 Demo User Accounts
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            🔐 Demo User Accounts
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Test different user roles across 3 Ghanaian schools with varying subscription statuses
+          </p>
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -92,14 +126,24 @@ export function DemoAccountsList() {
         {DEMO_ACCOUNTS.map((account, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <Badge variant="secondary" className={account.color}>
                   {account.role.toUpperCase()}
                 </Badge>
+                {account.status && (
+                  <Badge variant="outline" className="text-xs">
+                    {account.status}
+                  </Badge>
+                )}
               </div>
               <CardTitle className="text-sm">{account.name}</CardTitle>
-              <CardDescription className="text-xs">
-                {account.description}
+              <CardDescription className="text-xs space-y-1">
+                <div>{account.description}</div>
+                {account.school && (
+                  <div className="text-blue-600 dark:text-blue-400 font-medium">
+                    📍 {account.school}
+                  </div>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">

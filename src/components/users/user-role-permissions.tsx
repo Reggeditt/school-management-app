@@ -132,6 +132,26 @@ const defaultRoleConfigs: Record<UserRole, RoleConfig> = {
       "view_basic_data", "manage_resources", "view_schedules", "view_announcements", 
       "access_dashboard"
     ]
+  },
+  accountant: {
+    name: "Accountant",
+    description: "Financial management and billing capabilities",
+    icon: <Settings className="h-5 w-5" />,
+    color: "bg-yellow-500",
+    permissions: [
+      "view_basic_data", "manage_fees", "view_financial_reports", "manage_billing",
+      "view_students", "view_announcements", "access_dashboard"
+    ]
+  },
+  hr: {
+    name: "HR Manager",
+    description: "Human resources and staff management capabilities",
+    icon: <Users className="h-5 w-5" />,
+    color: "bg-indigo-500",
+    permissions: [
+      "view_basic_data", "manage_staff", "view_staff", "manage_recruitment",
+      "manage_payroll", "view_announcements", "access_dashboard"
+    ]
   }
 };
 

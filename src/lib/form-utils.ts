@@ -1,4 +1,8 @@
-import { Student, Teacher, Class } from '@/lib/database-services';
+import { Student, Teacher, Class, GuardianInfo } from '@/lib/database-services';
+import { 
+  generateStudentId as generateNewStudentId, 
+  generateTeacherId as generateNewTeacherId 
+} from '@/lib/id-generator';
 
 // Student form validation
 export interface StudentFormData {
@@ -9,11 +13,7 @@ export interface StudentFormData {
   dateOfBirth: string;
   gender: 'male' | 'female' | 'other';
   address: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string;
-  emergencyContact: string;
-  emergencyPhone: string;
+  guardians: GuardianInfo[];
   classId: string;
   grade: string;
   section: string;
@@ -48,12 +48,27 @@ export const validateStudentForm = (data: Partial<StudentFormData>): StudentForm
     errors.dateOfBirth = 'Date of birth is required';
   }
 
-  if (!data.parentName?.trim()) {
-    errors.parentName = 'Parent/Guardian name is required';
-  }
+  if (!data.guardians || data.guardians.length === 0) {
+    errors.guardians = 'At least one guardian is required';
+  } else {
+    // Validate each guardian
+    data.guardians.forEach((guardian, index) => {
+      if (!guardian.name?.trim()) {
+        errors[`guardian_${index}_name`] = `Guardian ${index + 1} name is required`;
+      }
+      if (!guardian.phone?.trim()) {
+        errors[`guardian_${index}_phone`] = `Guardian ${index + 1} phone is required`;
+      }
+      if (!guardian.relationship) {
+        errors[`guardian_${index}_relationship`] = `Guardian ${index + 1} relationship is required`;
+      }
+    });
 
-  if (!data.parentPhone?.trim()) {
-    errors.parentPhone = 'Parent/Guardian phone is required';
+    // Ensure at least one primary guardian exists
+    const hasPrimaryGuardian = data.guardians.some(g => g.isPrimary);
+    if (!hasPrimaryGuardian) {
+      errors.primaryGuardian = 'At least one guardian must be marked as primary';
+    }
   }
 
   if (!data.classId) {
@@ -166,13 +181,13 @@ export const getStatusColor = (status: string): string => {
 };
 
 export const generateStudentId = (existingStudents: Student[]): string => {
-  const count = existingStudents.length + 1;
-  return `STU${count.toString().padStart(4, '0')}`;
+  const existingIds = existingStudents.map(s => s.studentId);
+  return generateNewStudentId(existingIds);
 };
 
 export const generateTeacherId = (existingTeachers: Teacher[]): string => {
-  const count = existingTeachers.length + 1;
-  return `TCH${count.toString().padStart(4, '0')}`;
+  const existingIds = existingTeachers.map(t => t.teacherId);
+  return generateNewTeacherId(existingIds);
 };
 
 // Class form validation

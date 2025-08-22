@@ -1,6 +1,7 @@
 # School Management System - Developer Documentation
 
 ## Table of Contents
+
 1. [System Overview](#system-overview)
 2. [Architecture](#architecture)
 3. [Authentication & User Management](#authentication--user-management)
@@ -21,6 +22,7 @@
 The School Management System is a comprehensive Next.js 15 application built with TypeScript, React, and Firebase. It provides separate portals for different user types (Admin, Teacher, Student, Parent) with role-based access control.
 
 ### Technology Stack
+
 - **Frontend**: Next.js 15.4.6, React, TypeScript
 - **UI Components**: Radix UI components with Tailwind CSS
 - **Backend**: Firebase (Firestore, Authentication)
@@ -29,6 +31,7 @@ The School Management System is a comprehensive Next.js 15 application built wit
 - **Package Manager**: pnpm
 
 ### Key Features
+
 - Role-based authentication and authorization
 - Real-time data synchronization with Firebase
 - Responsive design for mobile and desktop
@@ -42,7 +45,8 @@ The School Management System is a comprehensive Next.js 15 application built wit
 
 ### High-Level Architecture
 
-```
+```text
+
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Client Side   │    │   Firebase      │    │   Services      │
 │                 │    │                 │    │                 │
@@ -60,7 +64,7 @@ The School Management System is a comprehensive Next.js 15 application built wit
 
 ### Component Architecture
 
-```
+```text
 src/
 ├── app/                    # Next.js App Router pages
 ├── components/             # Reusable UI components
@@ -94,11 +98,13 @@ The system uses Firebase Authentication with a custom user profile system:
 ```
 
 ### Key Files
+
 - `src/contexts/auth-context.tsx` - Authentication state management
 - `src/middleware.ts` - Route protection and role-based redirects
 - `src/lib/services/teacher-account-service.ts` - Teacher account creation
 
 ### User Roles
+
 - **admin**: Full system access
 - **teacher**: Teacher portal access
 - **student**: Student portal access
@@ -111,11 +117,12 @@ The system uses Firebase Authentication with a custom user profile system:
 ## Teacher Portal
 
 ### Overview
+
 The Teacher Portal provides comprehensive tools for educators to manage their classes, students, and academic activities.
 
 ### Portal Structure
 
-```
+```text
 /teacher/
 ├── dashboard/              # Overview of teacher's activities
 ├── classes/               # Class management and details
@@ -133,27 +140,31 @@ The Teacher Portal provides comprehensive tools for educators to manage their cl
 └── settings/             # Account settings
 ```
 
-### Key Features
+### Portal Features
 
 #### 1. Dashboard (`/teacher/dashboard`)
+
 - Quick overview of classes and students
 - Recent activities and notifications
 - Performance metrics and statistics
 - Quick action buttons for common tasks
 
 #### 2. Class Management (`/teacher/classes`)
+
 - View all assigned classes
 - Class statistics (enrollment, attendance)
 - Grid and list view options
 - Class filtering and search
 
 #### 3. Student Management (`/teacher/students`)
+
 - View all students across classes
 - Student profiles and academic records
 - Performance tracking
 - Communication with students/parents
 
 #### 4. Gradebook (`/teacher/gradebook`)
+
 - Grade entry and management
 - Assessment creation
 - Grade calculations and reports
@@ -161,7 +172,7 @@ The Teacher Portal provides comprehensive tools for educators to manage their cl
 
 ### Data Flow
 
-```typescript
+```text
 // Teacher Data Loading
 useTeacherData() hook:
 1. Gets teacher ID from authenticated user (Firebase UID)
@@ -171,6 +182,7 @@ useTeacherData() hook:
 ```
 
 ### Key Components
+
 - `useTeacherData` hook - Primary data source
 - `TeacherService` - Business logic layer
 - Teacher-specific UI components in `/components/teacher/`
@@ -180,11 +192,12 @@ useTeacherData() hook:
 ## Admin Portal
 
 ### Overview
+
 The Admin Portal provides comprehensive system administration capabilities for school management.
 
 ### Portal Structure
 
-```
+```text
 /admin/
 ├── dashboard/              # System overview and metrics
 ├── users/                 # User account management
@@ -204,24 +217,28 @@ The Admin Portal provides comprehensive system administration capabilities for s
 ### Key Features
 
 #### 1. User Management (`/admin/users`)
+
 - Create and manage all user accounts
 - Role assignment and permissions
 - Account activation/deactivation
 - Bulk user operations
 
 #### 2. Teacher Management (`/admin/teachers`)
+
 - Teacher account creation with Firebase Auth integration
 - Profile management and verification
 - Class assignments
 - Performance tracking
 
 #### 3. Student Management (`/admin/students`)
+
 - Student enrollment and records
 - Class assignments and transfers
 - Academic history tracking
 - Parent account linking
 
 #### 4. Academic Management
+
 - **Classes**: Create and manage classes, assign teachers
 - **Subjects**: Curriculum and subject management
 - **Timetable**: Schedule creation and management
@@ -233,10 +250,11 @@ The Admin Portal provides comprehensive system administration capabilities for s
 // New Teacher Creation Flow
 1. Admin fills teacher form (personal + auth details)
 2. TeacherAccountService.createTeacherAccount():
-   a. Creates Firebase Auth account
-   b. Creates Firestore user document
-   c. Creates Firestore teacher document
-   d. Links accounts using Firebase UID
+   a. Creates Firebase Auth account with post request to api route (to avoid current account switching bug.) the call returns the UID of the account just created.
+   b. Creates Firestore user document with a document ID matching the UID from firebase auth
+   c. a unique teachers ID is created for the teacher
+   d. Creates Firestore teacher document
+   e. Links accounts using Firebase UID
 3. Teacher can immediately log in with provided credentials
 ```
 
@@ -255,7 +273,7 @@ The system uses Firebase Firestore with the following principles:
 
 ### Core Collections
 
-```
+```txt
 firestore/
 ├── schools/               # School information
 ├── users/{uid}/          # User accounts (linked to Firebase Auth)
@@ -510,6 +528,23 @@ interface Class {
 
 ### Students Collection
 ```typescript
+interface GuardianInfo {
+  id?: string;                    // Optional unique ID for the guardian
+  name: string;
+  relationship: 'father' | 'mother' | 'guardian' | 'grandparent' | 'uncle' | 'aunt' | 'sibling' | 'other';
+  phone: string;
+  email?: string;
+  address?: string;
+  occupation?: string;
+  workplace?: string;
+  workPhone?: string;
+  isPrimary: boolean;             // Designates primary contact
+  isEmergencyContact: boolean;    // Can be contacted in emergencies
+  canPickup: boolean;             // Authorized to pick up student
+  hasFinancialResponsibility: boolean; // Responsible for fees
+  notes?: string;
+}
+
 interface Student {
   id: string;
   schoolId: string;
@@ -521,15 +556,21 @@ interface Student {
   dateOfBirth: Date;
   gender: 'male' | 'female' | 'other';
   address: string;
+  guardians: GuardianInfo[];      // Array of guardians/parents
   classId: string;         // Current class
   rollNumber: string;
   admissionDate: Date;
-  guardianInfo: {
-    name: string;
-    relationship: string;
-    phone: string;
-    email?: string;
-  };
+  status: 'active' | 'inactive' | 'graduated' | 'transferred';
+  profilePicture?: string;
+  medicalInfo?: string;
+  bloodGroup?: string;
+  religion?: string;
+  nationality: string;
+  previousSchool?: string;
+  feesPaid: boolean;
+  hostelResident: boolean;
+  transportRequired: boolean;
+  academicYear: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

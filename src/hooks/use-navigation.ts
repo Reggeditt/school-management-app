@@ -2,7 +2,7 @@ import { useReducer, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 // Types for navigation system
-export type PortalType = 'admin' | 'teacher' | 'student' | 'parent';
+export type PortalType = 'admin' | 'teacher' | 'student' | 'parent' | 'accountant' | 'hr';
 
 export interface NavigationItem {
   id: string;
@@ -292,6 +292,115 @@ const navigationConfigs: Record<PortalType, NavigationItem[]> = {
       icon: 'mail',
       description: 'School communications'
     }
+  ],
+  accountant: [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      href: '/accountant/dashboard',
+      icon: 'dashboard',
+      description: 'Financial overview and analytics'
+    },
+    {
+      id: 'fees',
+      label: 'Fee Management',
+      href: '/accountant/fees',
+      icon: 'file-text',
+      description: 'Student fees and payments'
+    },
+    {
+      id: 'payroll',
+      label: 'Payroll',
+      href: '/accountant/payroll',
+      icon: 'users',
+      description: 'Staff salary management'
+    },
+    {
+      id: 'budget',
+      label: 'Budget & Planning',
+      href: '/accountant/budget',
+      icon: 'bar-chart-3',
+      description: 'Budget planning and tracking'
+    },
+    {
+      id: 'expenses',
+      label: 'Expenses',
+      href: '/accountant/expenses',
+      icon: 'file-text',
+      description: 'Track school expenses'
+    },
+    {
+      id: 'reports',
+      label: 'Financial Reports',
+      href: '/accountant/reports',
+      icon: 'file-text',
+      description: 'Generate financial reports'
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      href: '/accountant/settings',
+      icon: 'settings',
+      description: 'Account preferences'
+    }
+  ],
+  hr: [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      href: '/hr/dashboard',
+      icon: 'dashboard',
+      description: 'HR overview and metrics'
+    },
+    {
+      id: 'staff',
+      label: 'Staff Records',
+      href: '/hr/staff',
+      icon: 'users',
+      description: 'Employee profiles and records'
+    },
+    {
+      id: 'recruitment',
+      label: 'Recruitment',
+      href: '/hr/recruitment',
+      icon: 'user-check',
+      description: 'Job postings and candidates'
+    },
+    {
+      id: 'appraisals',
+      label: 'Appraisals',
+      href: '/hr/appraisals',
+      icon: 'award',
+      description: 'Performance reviews'
+    },
+    {
+      id: 'training',
+      label: 'Training',
+      href: '/hr/training',
+      icon: 'book-open',
+      description: 'Staff development programs'
+    },
+    {
+      id: 'attendance',
+      label: 'Staff Attendance',
+      href: '/hr/attendance',
+      icon: 'calendar-check',
+      description: 'Track staff attendance'
+    },
+    {
+      id: 'policies',
+      label: 'Policies',
+      href: '/hr/policies',
+      icon: 'file-text',
+      description: 'HR policies and procedures'
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      href: '/hr/settings',
+      icon: 'settings',
+      description: 'HR preferences'
+    }
   ]
 };
 
@@ -422,7 +531,9 @@ export function useNavigation(initialPortalType?: PortalType) {
       admin: 'Admin Portal',
       teacher: 'Teacher Portal',
       student: 'Student Portal',
-      parent: 'Parent Portal'
+      parent: 'Parent Portal',
+      accountant: 'Accountant Portal',
+      hr: 'HR Portal'
     };
     return titles[state.portalType];
   };

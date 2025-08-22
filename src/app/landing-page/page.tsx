@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { DemoSeedButton } from '@/components/demo-seed-button';
 import { appConfig } from '../../../app.config.js';
 
 export default function LandingPage() {
@@ -73,6 +74,65 @@ export default function LandingPage() {
           </div>
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-400 rounded-full opacity-70 blur-2xl"></div>
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-pink-400 rounded-full opacity-70 blur-2xl"></div>
+        </div>
+      </section>
+
+      {/* Demo Tour Section */}
+      <section className="py-16 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400">
+              Experience the Full System
+            </h2>
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
+              Try our comprehensive demo with 3 Ghanaian schools featuring different subscription statuses, 
+              family relationships, and real-world scenarios. Perfect for exploring all user roles and features.
+            </p>
+            
+            <DemoSeedButton />
+            
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-green-200 dark:border-green-800">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Multiple Schools</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Ghana National School, Ashanti Academy, and Volta College with different subscription statuses
+                </p>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-green-200 dark:border-green-800">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Family Relationships</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Students with sibling relationships across schools to test family management features
+                </p>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-green-200 dark:border-green-800">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">All User Roles</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Demo accounts for admins, teachers, students, parents, and staff with realistic data
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
